@@ -54,4 +54,25 @@ contract UserRegistry {
     ) public view returns (address[] memory) {
         return userJobAddresses[_userAddress];
     }
+
+    //@dev TODO add modifier onlyUser , onlyAdmin
+    function changeUserRole(address _userAddress, Role _newRole) external {
+        UserInfo storage _userInfo = userAddressToInfo[_userAddress];
+        _userInfo.role = _newRole;
+    }
+
+    //@dev TODO add modifier onlyUser , onlyAdmin
+    function changeUserStatus(address _userAddress, Role _newStatus) external {
+        UserInfo storage _userInfo = userAddressToInfo[_userAddress];
+        _userInfo.role = _newStatus;
+    }
+
+    //@dev TODO add modifier onlyUser
+    function changeUserVerificationHash(
+        address _userAddress,
+        Role _newVerificationHash
+    ) external {
+        UserInfo storage _userInfo = userAddressToInfo[_userAddress];
+        _userInfo.role = _newVerificationHash;
+    }
 }
