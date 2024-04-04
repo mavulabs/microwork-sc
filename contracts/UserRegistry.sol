@@ -17,10 +17,10 @@ contract UserRegistry {
         Status status;
         bytes32 userVerificationHash;
     }
-    mapping(address => UserInfo) public userAddressToInfo;
-    address[] public userAddresses;
-    mapping(address => address[]) public userJobAddresses;
-    mapping(address => address[]) public userPlatformAddresses;
+    mapping(address => UserInfo) userAddressToInfo;
+    address[] userAddresses;
+    mapping(address => address[]) userJobAddresses;
+    mapping(address => address[]) userPlatformAddresses;
 
     event UserRegistered(address indexed userAddress);
 
@@ -43,5 +43,9 @@ contract UserRegistry {
         address _userAddress
     ) public view returns (UserInfo memory) {
         return userAddressToInfo[_userAddress];
+    }
+
+    function getAllUserAddresses() public view returns (address[] memory) {
+        return userAddresses;
     }
 }
