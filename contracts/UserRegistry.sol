@@ -38,4 +38,10 @@ contract UserRegistry {
 
         emit UserRegistered(_userAddress);
     }
+
+    function getUserInfo(
+        address _userAddress
+    ) public view returns (UserInfo memory) {
+        return userAddressToInfo[_userAddress];
+    }
 }
