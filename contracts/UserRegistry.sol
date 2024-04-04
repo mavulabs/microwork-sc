@@ -24,6 +24,14 @@ contract UserRegistry {
 
     event UserRegistered(address indexed userAddress);
 
+    //@dev TODO event for every state changing function
+
+    //@dev TODO error
+
+    //@dev TODO modifier onlyUser OnlyOwner
+
+    //@dev TODO constructor(admin addresses[])
+
     function registerUser(
         address _userAddress,
         Role _role,
@@ -75,4 +83,7 @@ contract UserRegistry {
         UserInfo storage _userInfo = userAddressToInfo[_userAddress];
         _userInfo.role = _newVerificationHash;
     }
+
+    //@dev TODO function approveUser()
+    //@dev TODO function  RejectUser()
 }
