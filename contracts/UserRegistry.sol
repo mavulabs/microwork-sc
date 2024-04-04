@@ -48,4 +48,10 @@ contract UserRegistry {
     function getAllUserAddresses() public view returns (address[] memory) {
         return userAddresses;
     }
+
+    function getAllJobsOfAUser(
+        address _userAddress
+    ) public view returns (address[] memory) {
+        return userJobAddresses[_userAddress];
+    }
 }
