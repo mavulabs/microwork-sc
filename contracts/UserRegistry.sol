@@ -5,7 +5,8 @@ contract UserRegistry {
     enum Role {
         Worker,
         Requester,
-        Both
+        WorkerAndRequester, //change
+        Reviewer
     }
     enum Status {
         Pending,
