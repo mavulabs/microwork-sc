@@ -1,6 +1,7 @@
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
 
-contract JobContract {
+contract JobInfo {
     bytes public jobDescription;
     bytes32 public typeOfJob;
     uint256 public deadline;
