@@ -8,7 +8,15 @@ contract JobInfo {
     // address[] public assignedTo;
     uint256[] public tasks;
     bool public jobStatus; // InProgress: true, Done: false
-    mapping(uint256 => address) taskIdToAssignee;
+    struct TaskInfo {
+        address taskAssignee;
+        uint256 deadline;
+        uint256 taskStatus;
+        uint256 cusdRewardAmount;
+        uint256 mavuRewardAmount;
+        uint256 scoreRewardAmount;
+    }
+    mapping(uint256 => TaskInfo) taskIdToInfo;
 
     event AssigneeChanged(address newAssignedTo);
     event DeadlineUpdated(uint256 newDeadline);
@@ -46,10 +54,25 @@ contract JobInfo {
         return (jobDescription, jobStatus, typeOfJob, deadline);
     }
 
-    function createTask(address _assignedTo) public {
+    function createTask(
+        address _assignedTo,
+        uint256 _deadline,
+        uint256 _taskStatus,
+        uint256 _cusdRewardAmount,
+        uint256 _mavuRewardAmount,
+        uint256 _scoreRewardAmount
+    ) public {
         uint256 _taskId = tasks.length;
         tasks.push(_taskId);
-        taskIdToAssignee[_taskId] = _assignedTo;
+        TaskInfo memory newTaskInfo = TaskInfo(
+            _assignedTo,
+            _deadline,
+            _taskStatus,
+            _cusdRewardAmount,
+            _mavuRewardAmount,
+            _scoreRewardAmount
+        );
+        taskIdToInfo[_taskId] = newTaskInfo;
         emit TaskCreated(_taskId, _assignedTo);
     }
 }
