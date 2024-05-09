@@ -75,4 +75,10 @@ contract JobInfo {
         taskIdToInfo[_taskId] = newTaskInfo;
         emit TaskCreated(_taskId, _assignedTo);
     }
+
+    function getTaskInfo(
+        uint256 _taskId
+    ) public view returns (TaskInfo memory) {
+        return taskIdToInfo[_taskId];
+    }
 }
