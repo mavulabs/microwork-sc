@@ -81,4 +81,11 @@ contract JobInfo {
     ) public view returns (TaskInfo memory) {
         return taskIdToInfo[_taskId];
     }
+
+    /** 0 = Not assigned, 1 = Assigned, 2 = In progress , 3 = Completed, 4 = In review process,
+     *  5 = Reviewed & Successful, 6 = Reviewed & Require midification, 7= Reviewed & Failed */
+    function updateTaskStatus(uint256 _taskId, uint256 _statusNo) external {
+        TaskInfo storage _taskInfo = taskIdToInfo[_taskId];
+        _taskInfo.taskStatus = _statusNo;
+    }
 }
