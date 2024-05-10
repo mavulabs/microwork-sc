@@ -97,9 +97,12 @@ contract JobInfo {
     function updateTaskStatus(uint256 _taskId, uint256 _statusNo) external {
         TaskInfo storage _taskInfo = taskIdToInfo[_taskId];
         _taskInfo.taskStatus = _statusNo;
+        if (_statusNo == 5) {
+            sendRewards(_taskInfo.taskAssignee, _taskId);
+        }
     }
 
-    function sendRewards(address _userAddress, uint256 _taskId) external {
+    function sendRewards(address _userAddress, uint256 _taskId) internal {
         TaskInfo memory task = taskIdToInfo[_taskId];
         cusdToken.transferFrom(msg.sender, _userAddress, task.cusdRewardAmount);
         mavuToken.transferFrom(msg.sender, _userAddress, task.mavuRewardAmount);
