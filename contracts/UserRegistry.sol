@@ -16,7 +16,7 @@ contract UserRegistry {
     struct UserInfo {
         Role role;
         Status status;
-        bytes32 userVerificationHash;
+        // bytes32 userVerificationHash;
     }
     mapping(address => UserInfo) userAddressToInfo;
     address[] userAddresses;
@@ -35,13 +35,13 @@ contract UserRegistry {
 
     function registerUser(
         address _userAddress,
-        Role _role,
-        bytes32 _verificationHash
-    ) public {
+        Role _role
+    ) public // bytes32 _verificationHash
+    {
         userAddressToInfo[_userAddress] = UserInfo(
             _role,
-            Status.Pending,
-            _verificationHash
+            Status.Pending
+            // _verificationHash
         );
         userAddresses.push(_userAddress);
 
