@@ -10,9 +10,19 @@ contract JobFactory {
     function registerJob(
         bytes memory jobDescription,
         bytes32 typeOfJob,
-        uint256 deadline
+        uint256 deadline,
+        address _cusdAddress,
+        address _mavuCoinAddress,
+        address _scoreAddress
     ) public {
-        JobInfo newJob = new JobInfo(jobDescription, typeOfJob, deadline);
+        JobInfo newJob = new JobInfo(
+            jobDescription,
+            typeOfJob,
+            deadline,
+            _cusdAddress,
+            _mavuCoinAddress,
+            _scoreAddress
+        );
         jobContracts.push(address(newJob));
         emit JobRegistered(address(newJob));
     }
