@@ -78,7 +78,7 @@ contract JobInfo {
         );
     }
 
-    function createTask(
+    function startTask(
         address _assignedTo,
         uint256 _deadline,
         uint256 _taskStatus
