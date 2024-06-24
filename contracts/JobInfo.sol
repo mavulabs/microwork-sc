@@ -6,6 +6,9 @@ contract JobInfo {
     IERC20 cusdToken;
     IERC20 mavuToken;
     IERC20 scoreToken;
+    uint256 cusdRewardAmount;
+    uint256 mavuRewardAmount;
+    uint256 scoreRewardAmount;
     bytes public jobDescription;
     bytes32 public typeOfJob;
     uint256 public deadline;
@@ -16,9 +19,6 @@ contract JobInfo {
         address taskAssignee;
         uint256 assignmentEndTime;
         uint256 taskStatus;
-        uint256 cusdRewardAmount;
-        uint256 mavuRewardAmount;
-        uint256 scoreRewardAmount;
     }
     mapping(uint256 => TaskInfo) taskIdToInfo;
 
@@ -45,7 +45,10 @@ contract JobInfo {
         uint256 _deadline,
         address _cusdAddress,
         address _mavuCoinAddress,
-        address _scoreAddress
+        address _scoreAddress,
+        uint256 _cusdRewardAmount,
+        uint256 _mavuRewardAmount,
+        uint256 _scoreRewardAmount
     ) {
         jobDescription = _jobDescription;
         typeOfJob = _typeOfJob;
@@ -54,6 +57,9 @@ contract JobInfo {
         cusdToken = IERC20(_cusdAddress);
         mavuToken = IERC20(_mavuCoinAddress);
         scoreToken = IERC20(_scoreAddress);
+        cusdRewardAmount = _cusdRewardAmount;
+        mavuRewardAmount = _mavuRewardAmount;
+        scoreRewardAmount = _scoreRewardAmount;
     }
 
     function getJobInfo()
@@ -67,20 +73,14 @@ contract JobInfo {
     function createTask(
         address _assignedTo,
         uint256 _deadline,
-        uint256 _taskStatus,
-        uint256 _cusdRewardAmount,
-        uint256 _mavuRewardAmount,
-        uint256 _scoreRewardAmount
+        uint256 _taskStatus
     ) public {
         uint256 _taskId = tasks.length;
         tasks.push(_taskId);
         TaskInfo memory newTaskInfo = TaskInfo(
             _assignedTo,
             _deadline,
-            _taskStatus,
-            _cusdRewardAmount,
-            _mavuRewardAmount,
-            _scoreRewardAmount
+            _taskStatus
         );
         taskIdToInfo[_taskId] = newTaskInfo;
         emit TaskCreated(_taskId, _assignedTo);
@@ -104,12 +104,18 @@ contract JobInfo {
 
     function sendRewards(address _userAddress, uint256 _taskId) internal {
         TaskInfo memory task = taskIdToInfo[_taskId];
-        cusdToken.transferFrom(msg.sender, _userAddress, task.cusdRewardAmount);
-        mavuToken.transferFrom(msg.sender, _userAddress, task.mavuRewardAmount);
-        scoreToken.transferFrom(
-            msg.sender,
-            _userAddress,
-            task.scoreRewardAmount
-        );
+        cusdToken.transferFrom(msg.sender, _userAddress, cusdRewardAmount);
+        mavuToken.transferFrom(msg.sender, _userAddress, mavuRewardAmount);
+        scoreToken.transferFrom(msg.sender, _userAddress, scoreRewardAmount);
+    }
+
+    function setRewardsAmount(
+        uint256 _cusdRewardAmount,
+        uint256 _mavuRewardAmount,
+        uint256 _scoreRewardAmount
+    ) external {
+        cusdRewardAmount = _cusdRewardAmount;
+        mavuRewardAmount = _mavuRewardAmount;
+        scoreRewardAmount = _scoreRewardAmount;
     }
 }

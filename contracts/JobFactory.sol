@@ -13,7 +13,10 @@ contract JobFactory {
         uint256 deadline,
         address _cusdAddress,
         address _mavuCoinAddress,
-        address _scoreAddress
+        address _scoreAddress,
+        uint256 _cusdRewardAmount,
+        uint256 _mavuRewardAmount,
+        uint256 _scoreRewardAmount
     ) public {
         JobInfo newJob = new JobInfo(
             jobDescription,
@@ -21,7 +24,10 @@ contract JobFactory {
             deadline,
             _cusdAddress,
             _mavuCoinAddress,
-            _scoreAddress
+            _scoreAddress,
+            _cusdRewardAmount,
+            _mavuRewardAmount,
+            _scoreRewardAmount
         );
         jobContracts.push(address(newJob));
         emit JobRegistered(address(newJob));
