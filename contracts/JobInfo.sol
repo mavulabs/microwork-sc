@@ -67,7 +67,15 @@ contract JobInfo {
         view
         returns (bytes memory, bool, bytes32, uint256)
     {
-        return (jobDescription, jobStatus, typeOfJob, deadline);
+        return (
+            jobDescription,
+            jobStatus,
+            typeOfJob,
+            deadline,
+            cusdRewardAmount,
+            mavuRewardAmount,
+            scoreRewardAmount
+        );
     }
 
     function createTask(
