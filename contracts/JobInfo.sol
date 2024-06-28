@@ -65,7 +65,15 @@ contract JobInfo {
     function getJobInfo()
         public
         view
-        returns (bytes memory, bool, bytes32, uint256)
+        returns (
+            bytes memory,
+            bool,
+            bytes32,
+            uint256,
+            uint256,
+            uint256,
+            uint256
+        )
     {
         return (
             jobDescription,
