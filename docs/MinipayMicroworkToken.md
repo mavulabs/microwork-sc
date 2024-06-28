@@ -2,33 +2,34 @@
 
 ## MinipayMicroworkToken
 
-### constructor
+### Funstions
+
+#### constructor
 
 ```solidity
 constructor(address initialOwner) public
 ```
 
-### pause
+#### pause
 
 ```solidity
 function pause() public
 ```
 
-### unpause
+#### unpause
 
 ```solidity
 function unpause() public
 ```
 
-### mint
+#### mint
 
 ```solidity
 function mint(address to, uint256 amount) public
 ```
 
-### _update
+#### \_update
 
 ```solidity
 function _update(address from, address to, uint256 value) internal
 ```
-
