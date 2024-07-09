@@ -9,16 +9,6 @@ const ALFAJORES_PRIVATE_KEY =
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
     solidity: "0.8.24",
-    docgen: {
-        root: process.cwd(),
-        sourcesDir: "contracts",
-        outputDir: "docs",
-        pages: "files",
-        exclude: [],
-        theme: "markdown",
-        collapseNewlines: true,
-        pageExtension: ".md",
-    },
     networks: {
         alfajores: {
             url: `https://alfajores-forno.celo-testnet.org`,
