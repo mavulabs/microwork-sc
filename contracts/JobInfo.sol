@@ -102,6 +102,16 @@ contract JobInfo {
         emit TaskCreated(_taskId, _assignedTo);
     }
 
+    function batchStartTasks(TaskInfo[] calldata _taskInfoArray) public {
+        for (uint256 i = 0; i < _taskInfoArray.length; i++) {
+            startTask(
+                _taskInfoArray[i].taskAssignee,
+                _taskInfoArray[i].assignmentEndTime,
+                _taskInfoArray[i].taskStatus
+            );
+        }
+    }
+
     function getTaskInfo(
         uint256 _taskId
     ) public view returns (TaskInfo memory) {
@@ -110,11 +120,25 @@ contract JobInfo {
 
     /** 0 = Not assigned, 1 = Assigned, 2 = In progress , 3 = Completed, 4 = In review process,
      *  5 = Reviewed & Successful, 6 = Reviewed & Require modification, 7 = Reviewed & Failed */
-    function updateTaskStatus(uint256 _taskId, uint256 _statusNo) external {
+    function updateTaskStatus(uint256 _taskId, uint256 _statusNo) public {
         TaskInfo storage _taskInfo = taskIdToInfo[_taskId];
         _taskInfo.taskStatus = _statusNo;
         if (_statusNo == 5) {
             sendRewards(_taskInfo.taskAssignee, _taskId);
+        }
+    }
+
+    function batchUpdateTaskStatus(
+        uint256[] calldata _taskIds,
+        uint256[] calldata _statusNos
+    ) external {
+        require(
+            _taskIds.length == _statusNos.length,
+            "Input arrays must have the same length"
+        );
+
+        for (uint256 i = 0; i < _taskIds.length; i++) {
+            updateTaskStatus(_taskIds[i], _statusNos[i]);
         }
     }
 
