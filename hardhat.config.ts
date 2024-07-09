@@ -1,7 +1,6 @@
 require("@nomicfoundation/hardhat-toolbox");
 // require("@nomiclabs/hardhat-ethers");
 require("dotenv").config();
-require("solidity-docgen");
 
 const ALFAJORES_PRIVATE_KEY =
     "42591bb3181d8e60d88b9e50eea9d872ef6f2a3fc6205d4c0b10862bbb6d0530";
