@@ -124,7 +124,7 @@ contract JobInfo {
         TaskInfo storage _taskInfo = taskIdToInfo[_taskId];
         _taskInfo.taskStatus = _statusNo;
         if (_statusNo == 5) {
-            sendRewards(_taskInfo.taskAssignee, _taskId);
+            sendRewards(_taskInfo.taskAssignee);
         }
     }
 
@@ -142,8 +142,7 @@ contract JobInfo {
         }
     }
 
-    function sendRewards(address _userAddress, uint256 _taskId) internal {
-        TaskInfo memory task = taskIdToInfo[_taskId];
+    function sendRewards(address _userAddress) internal {
         cusdToken.transferFrom(msg.sender, _userAddress, cusdRewardAmount);
         mavuToken.transferFrom(msg.sender, _userAddress, mavuRewardAmount);
         scoreToken.transferFrom(msg.sender, _userAddress, scoreRewardAmount);
