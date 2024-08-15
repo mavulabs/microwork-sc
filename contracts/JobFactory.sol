@@ -5,30 +5,32 @@ import "./JobInfo.sol";
 contract JobFactory {
     address[] public jobContracts;
     struct JobDetails {
+        address jobCreator;
         bytes jobDescription;
         bytes32 typeOfJob;
         uint256 deadline;
-        address _cusdAddress;
-        address _mavuCoinAddress;
-        address _scoreAddress;
-        uint256 _cusdRewardAmount;
-        uint256 _mavuRewardAmount;
-        uint256 _scoreRewardAmount;
+        address cusdAddress;
+        address mavuCoinAddress;
+        address scoreAddress;
+        uint256 cusdRewardAmount;
+        uint256 mavuRewardAmount;
+        uint256 scoreRewardAmount;
     }
 
     event JobRegistered(address indexed jobContract);
 
     function registerJob(JobDetails calldata _jobInfo) public {
         JobInfo newJob = new JobInfo(
+            _jobInfo.jobCreator,
             _jobInfo.jobDescription,
             _jobInfo.typeOfJob,
             _jobInfo.deadline,
-            _jobInfo._cusdAddress,
-            _jobInfo._mavuCoinAddress,
-            _jobInfo._scoreAddress,
-            _jobInfo._cusdRewardAmount,
-            _jobInfo._mavuRewardAmount,
-            _jobInfo._scoreRewardAmount
+            _jobInfo.cusdAddress,
+            _jobInfo.mavuCoinAddress,
+            _jobInfo.scoreAddress,
+            _jobInfo.cusdRewardAmount,
+            _jobInfo.mavuRewardAmount,
+            _jobInfo.scoreRewardAmount
         );
         jobContracts.push(address(newJob));
         emit JobRegistered(address(newJob));

@@ -6,6 +6,7 @@ contract JobInfo {
     IERC20 cusdToken;
     IERC20 mavuToken;
     IERC20 scoreToken;
+    address jobCreator;
     uint256 cusdRewardAmount;
     uint256 mavuRewardAmount;
     uint256 scoreRewardAmount;
@@ -40,6 +41,7 @@ contract JobInfo {
     // }
 
     constructor(
+        address _jobCreator,
         bytes memory _jobDescription,
         bytes32 _typeOfJob,
         uint256 _deadline,
@@ -50,6 +52,7 @@ contract JobInfo {
         uint256 _mavuRewardAmount,
         uint256 _scoreRewardAmount
     ) {
+        jobCreator = _jobCreator;
         jobDescription = _jobDescription;
         typeOfJob = _typeOfJob;
         deadline = _deadline;
