@@ -121,8 +121,9 @@ contract JobInfo {
         return taskIdToInfo[_taskId];
     }
 
-    /** 0 = Not assigned, 1 = Assigned, 2 = In progress , 3 = Completed, 4 = In review process,
+    /** 0 = Not assigned, 1 = In progress , 3 = Submitted & In review process,
      *  5 = Reviewed & Successful, 6 = Reviewed & Require modification, 7 = Reviewed & Failed */
+    // @TODO modifier 
     function updateTaskStatus(uint256 _taskId, uint256 _statusNo) public {
         TaskInfo storage _taskInfo = taskIdToInfo[_taskId];
         _taskInfo.taskStatus = _statusNo;
