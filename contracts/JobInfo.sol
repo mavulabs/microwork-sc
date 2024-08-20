@@ -22,6 +22,7 @@ contract JobInfo {
         uint256 taskStatus;
     }
     mapping(uint256 => TaskInfo) taskIdToInfo;
+    mapping(address => uint256) userToTaskId;
 
     event AssigneeChanged(address newAssignedTo);
     event DeadlineUpdated(uint256 newDeadline);
@@ -102,7 +103,14 @@ contract JobInfo {
             _taskStatus
         );
         taskIdToInfo[_taskId] = newTaskInfo;
+        userToTaskId[_assignedTo] = _taskId;
         emit TaskCreated(_taskId, _assignedTo);
+    }
+
+    function getTaskIdOfAUser(
+        address _userAddress
+    ) public view returns (uint256) {
+        return userToTaskId[_userAddress];
     }
 
     function batchStartTasks(TaskInfo[] calldata _taskInfoArray) public {
@@ -123,7 +131,7 @@ contract JobInfo {
 
     /** 0 = Not assigned, 1 = In progress , 3 = Submitted & In review process,
      *  5 = Reviewed & Successful, 6 = Reviewed & Require modification, 7 = Reviewed & Failed */
-    // @TODO modifier 
+    // @TODO modifier
     function updateTaskStatus(uint256 _taskId, uint256 _statusNo) public {
         TaskInfo storage _taskInfo = taskIdToInfo[_taskId];
         _taskInfo.taskStatus = _statusNo;
