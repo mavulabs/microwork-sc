@@ -140,6 +140,14 @@ contract JobInfo {
         }
     }
 
+    function getTaskStatusOfAUser(
+        address userAddress
+    ) public view returns (uint256) {
+        uint256 taskId = getTaskIdOfAUser(userAddress);
+        TaskInfo memory _taskInfo = getTaskInfo(taskId);
+        return _taskInfo.taskStatus;
+    }
+
     function batchUpdateTaskStatus(
         uint256[] calldata _taskIds,
         uint256[] calldata _statusNos
