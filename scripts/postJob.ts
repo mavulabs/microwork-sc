@@ -5,7 +5,7 @@ async function main() {
     const [signer] = await hre.ethers.getSigners();
     const JobFactory = await hre.ethers.getContractFactory("JobFactory");
     const JobFactoryContract = JobFactory.attach(
-        "0xaC205731222eD82084a3f063d603D4851A82dE4C"
+        "0x253a70a219965daC78361725a6c91ccf6Aa0C70d"
     ).connect(signer);
 
     const jobDetails = [
