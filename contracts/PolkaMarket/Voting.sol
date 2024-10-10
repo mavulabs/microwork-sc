@@ -20,6 +20,7 @@ contract AdvancedVoting {
     mapping(uint256 => Proposal) public proposals;
     mapping(address => UserVote) public userVotes;
     uint256 public totalVotes;
+    uint256 public votingDeadline;
 
     event ProposalCreated(uint256 indexed proposalId, string description);
     event Voted(
@@ -32,24 +33,34 @@ contract AdvancedVoting {
         address indexed previousOwner,
         address indexed newOwner
     );
+    event VotingDeadlineSet(uint256 deadline);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Only the owner can call this function");
         _;
     }
 
-    constructor(uint256 _initialStakeAmount) {
-        owner = msg.sender;
-        fixedStakeAmount = _initialStakeAmount;
+    modifier votingOpen() {
+        require(block.timestamp < votingDeadline, "Voting period has ended");
+        _;
     }
 
-    function createProposal(string memory _description) public onlyOwner {
+    constructor(uint256 _initialStakeAmount, uint256 _votingDuration) {
+        owner = msg.sender;
+        fixedStakeAmount = _initialStakeAmount;
+        votingDeadline = block.timestamp + _votingDuration;
+        emit VotingDeadlineSet(votingDeadline);
+    }
+
+    function createProposal(
+        string memory _description
+    ) public onlyOwner votingOpen {
         proposalCount++;
         proposals[proposalCount] = Proposal(_description, 0, true);
         emit ProposalCreated(proposalCount, _description);
     }
 
-    function vote(uint256 _proposalId) public payable {
+    function vote(uint256 _proposalId) public payable votingOpen {
         require(proposals[_proposalId].exists, "Proposal does not exist");
         require(
             msg.value == fixedStakeAmount,
@@ -74,6 +85,7 @@ contract AdvancedVoting {
         view
         returns (uint256 winningProposalId, string memory winningProposal)
     {
+        require(block.timestamp >= votingDeadline, "Voting is still ongoing");
         uint256 winningVoteCount = 0;
         for (uint256 i = 1; i <= proposalCount; i++) {
             if (proposals[i].voteCount > winningVoteCount) {
@@ -95,10 +107,26 @@ contract AdvancedVoting {
     }
 
     function withdrawStake() public {
+        require(
+            block.timestamp >= votingDeadline,
+            "Cannot withdraw before voting deadline"
+        );
         require(userVotes[msg.sender].hasVoted, "No stake to withdraw");
         uint256 amount = userVotes[msg.sender].amount;
         delete userVotes[msg.sender];
         payable(msg.sender).transfer(amount);
+    }
+
+    function extendVotingDeadline(uint256 _additionalTime) public onlyOwner {
+        votingDeadline += _additionalTime;
+        emit VotingDeadlineSet(votingDeadline);
+    }
+
+    function getRemainingTime() public view returns (uint256) {
+        if (block.timestamp >= votingDeadline) {
+            return 0;
+        }
+        return votingDeadline - block.timestamp;
     }
 
     // Allow the contract to receive ETH
