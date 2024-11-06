@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract JobInfo {
+contract JobInfo is ReentrancyGuard {
     IERC20 cusdToken;
     IERC20 mavuToken;
     IERC20 scoreToken;
@@ -28,6 +29,13 @@ contract JobInfo {
     event DeadlineUpdated(uint256 newDeadline);
     event TaskCreated(uint256 indexed taskId, address indexed assignee);
     event TaskAssigned(uint256 indexed taskId, address indexed assignee);
+    event WithdrawalRequested(address indexed jobCreator, uint256 amount);
+    event WithdrawalCompleted(address indexed jobCreator, uint256 amount);
+    event InvalidWithdrawRequest(address tokenAddress);
+
+    error ZeroAddress();
+    error InsufficientBalance();
+    error TransferFailed();
 
     // modifier onlyAssigned() {
     //     bool found = false;
@@ -176,6 +184,17 @@ contract JobInfo {
         cusdRewardAmount = _cusdRewardAmount;
         mavuRewardAmount = _mavuRewardAmount;
         scoreRewardAmount = _scoreRewardAmount;
+    }
+
+    function withdrawMavu() external nonReentrant {
+        uint256 balanceOfMavu = getTotalMavuStacked();
+        if (jobStatus) revert InvalidWithdrawRequest(mavuTokenAddress);
+        if (balanceOfMavu == 0) revert InsufficientBalance();
+        if (jobCreator == address(0)) revert ZeroAddress();
+        emit WithdrawalRequested(jobCreator, balanceOfMavu);
+        bool success = mavuToken.transfer(jobCreator, balanceOfMavu);
+        if (!success) revert TransferFailed();
+        emit WithdrawalCompleted(jobCreator, balanceOfMavu);
     }
 
     function getTotalMavuStacked() public view returns (uint256) {
