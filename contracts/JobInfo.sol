@@ -29,8 +29,16 @@ contract JobInfo is ReentrancyGuard {
     event DeadlineUpdated(uint256 newDeadline);
     event TaskCreated(uint256 indexed taskId, address indexed assignee);
     event TaskAssigned(uint256 indexed taskId, address indexed assignee);
-    event WithdrawalRequested(address indexed jobCreator, uint256 amount);
-    event WithdrawalCompleted(address indexed jobCreator, uint256 amount);
+    event WithdrawalRequested(
+        address indexed jobCreator,
+        uint256 amount,
+        address tokenAddress
+    );
+    event WithdrawalCompleted(
+        address indexed jobCreator,
+        uint256 amount,
+        address tokenAddress
+    );
     event InvalidWithdrawRequest(address tokenAddress);
 
     error ZeroAddress();
@@ -191,10 +199,25 @@ contract JobInfo is ReentrancyGuard {
         if (jobStatus) revert InvalidWithdrawRequest(mavuTokenAddress);
         if (balanceOfMavu == 0) revert InsufficientBalance();
         if (jobCreator == address(0)) revert ZeroAddress();
-        emit WithdrawalRequested(jobCreator, balanceOfMavu);
+        emit WithdrawalRequested(jobCreator, balanceOfMavu, mavuTokenAddress);
         bool success = mavuToken.transfer(jobCreator, balanceOfMavu);
         if (!success) revert TransferFailed();
-        emit WithdrawalCompleted(jobCreator, balanceOfMavu);
+        emit WithdrawalCompleted(jobCreator, balanceOfMavu, mavuTokenAddress);
+    }
+
+    function withdrawCUSD() external nonReentrant {
+        uint256 balanceOfCUSD = getTotalCUSDStacked();
+        if (jobStatus) revert InvalidWithdrawRequest(cUSDTokenAddress);
+        if (balanceOfCUSD == 0) revert InsufficientBalance();
+        if (jobCreator == address(0)) revert ZeroAddress();
+        emit WithdrawalRequested(jobCreator, balanceOfCUSD);
+        bool success = mavuToken.transfer(
+            jobCreator,
+            balanceOfCUSD,
+            cUSDTokenAddress
+        );
+        if (!success) revert TransferFailed();
+        emit WithdrawalCompleted(jobCreator, balanceOfCUSD, cUSDTokenAddress);
     }
 
     function getTotalMavuStacked() public view returns (uint256) {
