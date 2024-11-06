@@ -177,4 +177,12 @@ contract JobInfo {
         mavuRewardAmount = _mavuRewardAmount;
         scoreRewardAmount = _scoreRewardAmount;
     }
+
+    function getTotalMavuStacked() public view returns (uint256) {
+        return mavuToken.balanceOf(address(this));
+    }
+
+    function getTotalCUSDStacked() public view returns (uint256) {
+        return cusdToken.balanceOf(address(this));
+    }
 }
