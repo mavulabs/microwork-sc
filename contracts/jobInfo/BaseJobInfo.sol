@@ -65,6 +65,8 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
     bytes32 public typeOfJob;
     uint256[] public tasks;
     bool public jobStatus; // InProgress: true, Done: false
+    uint256 evaluatorType;
+    address evaluator;
 
     struct TaskInfo {
         address taskAssignee;

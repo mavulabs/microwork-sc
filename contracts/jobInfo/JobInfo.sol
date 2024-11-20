@@ -132,6 +132,18 @@ contract JobInfo is UpgradeableJobInfo {
         jobStatus = false;
     }
 
+    function setEvaluatorType(
+        uint256 _evaluatorTypeNo
+    ) external onlyJobCreator {
+        evaluatorType = _evaluatorTypeNo;
+    }
+
+    function setEvaluatorAddress(
+        address _evaluatorAddress
+    ) external onlyJobCreator {
+        evaluator = _evaluatorAddress;
+    }
+
     function getJobInfo()
         external
         view
