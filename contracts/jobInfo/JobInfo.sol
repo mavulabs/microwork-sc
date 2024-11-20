@@ -59,6 +59,14 @@ contract JobInfo is UpgradeableJobInfo {
         uint256 _statusNo
     ) public onlyJobCreator taskExists(_taskId) {
         if (_statusNo > 7) revert InvalidTaskStatus(_statusNo);
+        if (
+            (_statusNo == 1 || _statusNo == 2) &&
+            msg.sender != getTaskAssignee(_taskId)
+        ) revert onlyTaskAssigneeCanChange(_taskId, _statusNo);
+        if (
+            (_statusNo == 5 || _statusNo == 6 || _statusNo == 7) &&
+            msg.sender != evaluator
+        ) revert OnlyEvaluatorCanChange(_taskId, _statusNo);
 
         TaskInfo storage _taskInfo = taskIdToInfo[_taskId];
         uint256 oldStatus = _taskInfo.taskStatus;
@@ -171,5 +179,15 @@ contract JobInfo is UpgradeableJobInfo {
         uint256 taskId = userToTaskId[userAddress];
         if (taskId == 0) revert TaskNotFound(0);
         return taskIdToInfo[taskId].taskStatus;
+    }
+
+    function getTaskInfo(
+        uint256 _taskId
+    ) public view returns (TaskInfo memory) {
+        return taskIdToInfo[_taskId];
+    }
+
+    function getTaskAssignee(uint256 _taskId) public view returns (address) {
+        return taskIdToInfo[_taskId].taskAssignee;
     }
 }
