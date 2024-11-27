@@ -17,7 +17,8 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
     error TaskAlreadyExists(address assignee);
     error InvalidToken(address token);
     error OnlyEvaluatorCanChange(uint256 taskId, uint256 status);
-    error onlyTaskAssigneeCanChange(uint256 taskId, uint256 status);
+    error OnlyTaskAssigneeCanChange(uint256 taskId, uint256 status);
+    error ArrayLengthShouldBeEqual();
 
     event JobInitialized(
         address indexed creator,
@@ -34,11 +35,7 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
         uint256 oldStatus,
         uint256 newStatus
     );
-    event RewardsUpdated(
-        uint256 cusdAmount,
-        uint256 mavuAmount,
-        uint256 scoreAmount
-    );
+    event RewardsUpdated(uint256 cusdAmount);
     event RewardsSent(
         address indexed recipient,
         uint256 cusdAmount,
@@ -56,9 +53,8 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
         address tokenAddress
     );
 
-    address public cusdTokenAddress;
-    address public mavuTokenAddress;
-    address public scoreTokenAddress;
+    address[] rewardTokens;
+    mapping(address => uint256) rewardTokensToAmount;
     address public jobCreator;
     uint256 public cusdRewardAmount;
     uint256 public mavuRewardAmount;
@@ -68,12 +64,12 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
     uint256[] public tasks;
     bool public jobStatus; // InProgress: true, Done: false
     uint256 evaluatorType;
-    address evaluator;
 
     struct TaskInfo {
         address taskAssignee;
         uint256 assignmentEndTime;
         uint256 taskStatus;
+        address evaluator;
     }
 
     mapping(uint256 => TaskInfo) public taskIdToInfo;
@@ -100,58 +96,41 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
         _;
     }
 
-    // Initialize function to be implemented by derived contracts
     function __BaseJobInfo_init(
         address _jobCreator,
         bytes memory _jobDescription,
         bytes32 _typeOfJob,
         uint256 _deadline,
-        address _cusdAddress,
-        address _mavuCoinAddress,
-        address _scoreAddress,
-        uint256 _cusdRewardAmount,
-        uint256 _mavuRewardAmount,
-        uint256 _scoreRewardAmount
+        address[] _rewardTokens,
+        uint256[] _rewardAmounts
     ) internal onlyInitializing {
         if (_jobCreator == address(0)) revert ZeroAddress();
         if (_deadline <= block.timestamp) revert InvalidDeadline(_deadline);
-        if (
-            _cusdAddress == address(0) ||
-            _mavuCoinAddress == address(0) ||
-            _scoreAddress == address(0)
-        ) revert ZeroAddress();
 
         jobCreator = _jobCreator;
         jobDescription = _jobDescription;
         typeOfJob = _typeOfJob;
         jobStatus = true;
 
-        cusdTokenAddress = _cusdAddress;
-        mavuTokenAddress = _mavuCoinAddress;
-        scoreTokenAddress = _scoreAddress;
-
-        _updateRewards(
-            _cusdRewardAmount,
-            _mavuRewardAmount,
-            _scoreRewardAmount
-        );
+        _updateRewards(_rewardTokens, _rewardAmounts);
 
         emit JobInitialized(_jobCreator, _typeOfJob, _deadline);
     }
 
     function _updateRewards(
-        uint256 _cusdRewardAmount,
-        uint256 _mavuRewardAmount,
-        uint256 _scoreRewardAmount
-    ) internal onlyJobCreator {
-        cusdRewardAmount = _cusdRewardAmount;
-        mavuRewardAmount = _mavuRewardAmount;
-        scoreRewardAmount = _scoreRewardAmount;
+        address[] _rewardTokens,
+        uint256[] _rewardAmounts
+    ) internal {
+        if (_rewardTokens.length != _rewardAmounts.length) {
+            revert ArrayLengthShouldBeEqual();
+        }
 
-        emit RewardsUpdated(
-            _cusdRewardAmount,
-            _mavuRewardAmount,
-            _scoreRewardAmount
-        );
+        rewardTokens = _rewardTokens;
+        for (uint256 i = 0; i < _rewardTokens.length; i++) {
+            if (_rewardTokens[i] == address(0)) {
+                revert ZeroAddress();
+            }
+            rewardTokensToAmount[_rewardTokens[i]] = _rewardAmounts[i];
+        }
     }
 }
