@@ -11,11 +11,7 @@ contract JobInfo is UpgradeableJobInfo {
         bytes32 _typeOfJob,
         uint256 _deadline,
         address _cusdAddress,
-        address _mavuCoinAddress,
-        address _scoreAddress,
-        uint256 _cusdRewardAmount,
-        uint256 _mavuRewardAmount,
-        uint256 _scoreRewardAmount
+        uint256 _cusdRewardAmount
     ) public initializer {
         __UpgradeableJobInfo_init(
             _jobCreator,
@@ -23,11 +19,7 @@ contract JobInfo is UpgradeableJobInfo {
             _typeOfJob,
             _deadline,
             _cusdAddress,
-            _mavuCoinAddress,
-            _scoreAddress,
-            _cusdRewardAmount,
-            _mavuRewardAmount,
-            _scoreRewardAmount
+            _cusdRewardAmount
         );
     }
 
@@ -46,7 +38,8 @@ contract JobInfo is UpgradeableJobInfo {
         taskIdToInfo[_taskId] = TaskInfo({
             taskAssignee: _assignedTo,
             assignmentEndTime: _deadline,
-            taskStatus: _taskStatus
+            taskStatus: _taskStatus,
+            evaluator: address(0)
         });
 
         userToTaskId[_assignedTo] = _taskId;
@@ -59,16 +52,16 @@ contract JobInfo is UpgradeableJobInfo {
         uint256 _statusNo
     ) public onlyJobCreator taskExists(_taskId) {
         if (_statusNo > 7) revert InvalidTaskStatus(_statusNo);
+        TaskInfo storage _taskInfo = taskIdToInfo[_taskId];
         if (
             (_statusNo == 1 || _statusNo == 2) &&
-            msg.sender != getTaskAssignee(_taskId)
-        ) revert onlyTaskAssigneeCanChange(_taskId, _statusNo);
+            msg.sender != _taskInfo.taskAssignee
+        ) revert OnlyTaskAssigneeCanChange(_taskId, _statusNo);
         if (
             (_statusNo == 5 || _statusNo == 6 || _statusNo == 7) &&
-            msg.sender != evaluator
+            msg.sender != _taskInfo.evaluator
         ) revert OnlyEvaluatorCanChange(_taskId, _statusNo);
 
-        TaskInfo storage _taskInfo = taskIdToInfo[_taskId];
         uint256 oldStatus = _taskInfo.taskStatus;
         _taskInfo.taskStatus = _statusNo;
 
@@ -82,28 +75,15 @@ contract JobInfo is UpgradeableJobInfo {
     function _sendRewards(address _userAddress) internal {
         if (_userAddress == address(0)) revert ZeroAddress();
 
-        bool cusdSuccess = IERC20(cusdTokenAddress).transfer(
-            _userAddress,
-            cusdRewardAmount
-        );
-        bool mavuSuccess = IERC20(mavuTokenAddress).transfer(
-            _userAddress,
-            mavuRewardAmount
-        );
-        bool scoreSuccess = IERC20(scoreTokenAddress).transfer(
-            _userAddress,
-            scoreRewardAmount
-        );
+        for (uint256 i = 0; i < rewardTokens.length; i++) {
+            bool success = IERC20(rewardTokens[i]).transfer(
+                _userAddress,
+                cusdRewardAmount
+            );
+            if (!success) revert TransferFailed();
+        }
 
-        if (!cusdSuccess || !mavuSuccess || !scoreSuccess)
-            revert TransferFailed();
-
-        emit RewardsSent(
-            _userAddress,
-            cusdRewardAmount,
-            mavuRewardAmount,
-            scoreRewardAmount
-        );
+        emit RewardsSent(_userAddress);
     }
 
     function setRewardsAmount(
@@ -147,9 +127,11 @@ contract JobInfo is UpgradeableJobInfo {
     }
 
     function setEvaluatorAddress(
+        uint256 _taskId,
         address _evaluatorAddress
-    ) external onlyJobCreator {
-        evaluator = _evaluatorAddress;
+    ) external {
+        TaskInfo storage _taskInfo = taskIdToInfo[_taskId];
+        _taskInfo.evaluator = _evaluatorAddress;
     }
 
     function getJobInfo()
