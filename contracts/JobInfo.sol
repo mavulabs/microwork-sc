@@ -4,9 +4,9 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 contract JobInfo is ReentrancyGuard {
-    IERC20 cusdToken;
-    IERC20 mavuToken;
-    IERC20 scoreToken;
+    address cusdTokenAddress;
+    address mavuToken;
+    address scoreToken;
     address jobCreator;
     uint256 cusdRewardAmount;
     uint256 mavuRewardAmount;
@@ -128,17 +128,6 @@ contract JobInfo is ReentrancyGuard {
     ) public view returns (uint256) {
         return userToTaskId[_userAddress];
     }
-
-    function batchStartTasks(TaskInfo[] calldata _taskInfoArray) public {
-        for (uint256 i = 0; i < _taskInfoArray.length; i++) {
-            startTask(
-                _taskInfoArray[i].taskAssignee,
-                _taskInfoArray[i].assignmentEndTime,
-                _taskInfoArray[i].taskStatus
-            );
-        }
-    }
-
     function getTaskInfo(
         uint256 _taskId
     ) public view returns (TaskInfo memory) {
@@ -162,20 +151,6 @@ contract JobInfo is ReentrancyGuard {
         uint256 taskId = getTaskIdOfAUser(userAddress);
         TaskInfo memory _taskInfo = getTaskInfo(taskId);
         return _taskInfo.taskStatus;
-    }
-
-    function batchUpdateTaskStatus(
-        uint256[] calldata _taskIds,
-        uint256[] calldata _statusNos
-    ) external {
-        require(
-            _taskIds.length == _statusNos.length,
-            "Input arrays must have the same length"
-        );
-
-        for (uint256 i = 0; i < _taskIds.length; i++) {
-            updateTaskStatus(_taskIds[i], _statusNos[i]);
-        }
     }
 
     function sendRewards(address _userAddress) internal {

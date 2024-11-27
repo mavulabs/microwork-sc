@@ -7,19 +7,19 @@ import "./UpgradeableJobInfo.sol";
 contract JobInfo is UpgradeableJobInfo {
     function initialize(
         address _jobCreator,
-        bytes memory _jobDescription,
+        bytes calldata _jobDescription,
         bytes32 _typeOfJob,
         uint256 _deadline,
-        address _cusdAddress,
-        uint256 _cusdRewardAmount
+        address[] calldata _rewardTokens,
+        uint256[] calldata _rewardAmount
     ) public initializer {
         __UpgradeableJobInfo_init(
             _jobCreator,
             _jobDescription,
             _typeOfJob,
             _deadline,
-            _cusdAddress,
-            _cusdRewardAmount
+            _rewardTokens,
+            _rewardAmount
         );
     }
 
@@ -82,20 +82,14 @@ contract JobInfo is UpgradeableJobInfo {
             );
             if (!success) revert TransferFailed();
         }
-
         emit RewardsSent(_userAddress);
     }
 
     function setRewardsAmount(
-        uint256 _cusdRewardAmount,
-        uint256 _mavuRewardAmount,
-        uint256 _scoreRewardAmount
+        address[] calldata _rewardTokens,
+        uint256[] calldata _rewardAmounts
     ) external onlyJobCreator {
-        _updateRewards(
-            _cusdRewardAmount,
-            _mavuRewardAmount,
-            _scoreRewardAmount
-        );
+        _updateRewards(_rewardTokens, _rewardAmounts);
     }
 
     function withdrawToken(

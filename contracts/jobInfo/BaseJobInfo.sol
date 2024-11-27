@@ -36,12 +36,7 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
         uint256 newStatus
     );
     event RewardsUpdated(uint256 cusdAmount);
-    event RewardsSent(
-        address indexed recipient,
-        uint256 cusdAmount,
-        uint256 mavuAmount,
-        uint256 scoreAmount
-    );
+    event RewardsSent(address indexed recipient);
     event WithdrawalRequested(
         address indexed jobCreator,
         uint256 amount,
