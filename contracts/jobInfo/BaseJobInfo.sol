@@ -86,13 +86,12 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
     }
 
     modifier validToken(address tokenAddress) {
-        if (
-            tokenAddress != cusdTokenAddress &&
-            tokenAddress != mavuTokenAddress &&
-            tokenAddress != scoreTokenAddress
-        ) {
-            revert InvalidToken(tokenAddress);
+        for (uint256 i = 0; i < rewardTokens.length; i++) {
+            if (rewardTokens[i] == tokenAddress) {
+                break;
+            }
         }
+        revert InvalidToken(tokenAddress);
         _;
     }
 
@@ -101,8 +100,8 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
         bytes memory _jobDescription,
         bytes32 _typeOfJob,
         uint256 _deadline,
-        address[] _rewardTokens,
-        uint256[] _rewardAmounts
+        address[] calldata _rewardTokens,
+        uint256[] calldata _rewardAmounts
     ) internal onlyInitializing {
         if (_jobCreator == address(0)) revert ZeroAddress();
         if (_deadline <= block.timestamp) revert InvalidDeadline(_deadline);
@@ -118,8 +117,8 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
     }
 
     function _updateRewards(
-        address[] _rewardTokens,
-        uint256[] _rewardAmounts
+        address[] calldata _rewardTokens,
+        uint256[] calldata _rewardAmounts
     ) internal {
         if (_rewardTokens.length != _rewardAmounts.length) {
             revert ArrayLengthShouldBeEqual();
