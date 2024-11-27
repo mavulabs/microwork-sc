@@ -25,12 +25,8 @@ abstract contract UpgradeableJobInfo is
         bytes memory _jobDescription,
         bytes32 _typeOfJob,
         uint256 _deadline,
-        address _cusdAddress,
-        address _mavuCoinAddress,
-        address _scoreAddress,
-        uint256 _cusdRewardAmount,
-        uint256 _mavuRewardAmount,
-        uint256 _scoreRewardAmount
+        address[] calldata _rewardTokens,
+        uint256[] calldata _rewardAmount
     ) internal onlyInitializing {
         __Ownable_init(msg.sender);
         __UUPSUpgradeable_init();
@@ -40,12 +36,8 @@ abstract contract UpgradeableJobInfo is
             _jobDescription,
             _typeOfJob,
             _deadline,
-            _cusdAddress,
-            _mavuCoinAddress,
-            _scoreAddress,
-            _cusdRewardAmount,
-            _mavuRewardAmount,
-            _scoreRewardAmount
+            _rewardTokens,
+            _rewardAmount
         );
     }
 }
