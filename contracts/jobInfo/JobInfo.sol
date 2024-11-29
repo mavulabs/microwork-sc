@@ -128,6 +128,20 @@ contract JobInfo is UpgradeableJobInfo {
         _taskInfo.evaluator = _evaluatorAddress;
     }
 
+    function stakeReward(uint256 noOfTasks, address tokenAddress) external {
+        uint256 rewardTokenAmount = rewardTokensToAmount[tokenAddress];
+        if (rewardTokenAmount == 0) {
+            revert NotARewardToken(tokenAddress);
+        }
+        uint256 totalAmountToStake = noOfTasks * rewardTokenAmount;
+        bool success = IERC20(tokenAddress).transferFrom(
+            msg.sender,
+            address(this),
+            totalAmountToStake
+        );
+        if (!success) revert TransferFailed();
+    }
+
     function getJobInfo()
         external
         view

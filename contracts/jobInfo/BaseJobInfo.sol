@@ -19,6 +19,7 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
     error OnlyEvaluatorCanChange(uint256 taskId, uint256 status);
     error OnlyTaskAssigneeCanChange(uint256 taskId, uint256 status);
     error ArrayLengthShouldBeEqual();
+    error NotARewardToken(address tokenAddress);
 
     event JobInitialized(
         address indexed creator,
