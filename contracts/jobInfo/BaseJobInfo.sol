@@ -51,20 +51,17 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
 
     address[] rewardTokens;
     mapping(address => uint256) rewardTokensToAmount;
-    address public jobCreator;
-    uint256 public cusdRewardAmount;
-    uint256 public mavuRewardAmount;
-    uint256 public scoreRewardAmount;
+    address jobCreator;
     bytes public jobDescription;
     bytes32 public typeOfJob;
-    uint256[] public tasks;
+    uint256 public tasksLength; //task starts from 1
     bool public jobStatus; // InProgress: true, Done: false
-    uint256 evaluatorType;
+    uint256 public evaluatorType;
 
     struct TaskInfo {
         address taskAssignee;
         uint256 assignmentEndTime;
-        uint256 taskStatus;
+        uint256 taskStatus; // 1 : InProgress
         address evaluator;
     }
 
@@ -77,7 +74,7 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
     }
 
     modifier taskExists(uint256 taskId) {
-        if (taskId >= tasks.length) revert TaskNotFound(taskId);
+        if (taskId >= tasksLength) revert TaskNotFound(taskId);
         _;
     }
 
