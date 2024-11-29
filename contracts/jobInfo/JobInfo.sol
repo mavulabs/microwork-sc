@@ -31,6 +31,7 @@ contract JobInfo is UpgradeableJobInfo {
         if (_assignedTo == address(0)) revert ZeroAddress();
         if (userToTaskId[_assignedTo] != 0)
             revert TaskAlreadyExists(_assignedTo);
+        if (!canStartTask()) revert NotEnoughRewardBalanceToStartTask();
 
         uint256 _taskId = tasksLength + 1;
 
@@ -92,19 +93,20 @@ contract JobInfo is UpgradeableJobInfo {
     }
 
     function withdrawToken(
-        address tokenAddress
+        address tokenAddress,
+        uint256 amount
     ) external nonReentrant onlyJobCreator validToken(tokenAddress) {
-        if (jobStatus) revert JobInProgress();
+        // if (jobStatus) revert JobInProgress();
+        if (getUsableReward(tokenAddress) < amount) {
+            revert InsufficientBalance();
+        }
 
-        uint256 balance = IERC20(tokenAddress).balanceOf(address(this));
-        if (balance == 0) revert InsufficientBalance();
+        emit WithdrawalRequested(jobCreator, amount, tokenAddress);
 
-        emit WithdrawalRequested(jobCreator, balance, tokenAddress);
-
-        bool success = IERC20(tokenAddress).transfer(jobCreator, balance);
+        bool success = IERC20(tokenAddress).transfer(jobCreator, amount);
         if (!success) revert TransferFailed();
 
-        emit WithdrawalCompleted(jobCreator, balance, tokenAddress);
+        emit WithdrawalCompleted(jobCreator, amount, tokenAddress);
     }
 
     function chnageJobStatus() external nonReentrant onlyJobCreator {
