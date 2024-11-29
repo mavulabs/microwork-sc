@@ -160,6 +160,31 @@ contract JobInfo is UpgradeableJobInfo {
         return _totalInProgressTasks;
     }
 
+    function getUsableReward(
+        address tokenAddress
+    ) public view returns (uint256) {
+        uint256 _rewardTokenAmount = rewardTokensToAmount[tokenAddress];
+        uint256 _notUsableAmount = _rewardTokenAmount *
+            getTotalInProgressTasks();
+        uint256 _totalStakedAmount = IERC20(tokenAddress).balanceOf(
+            address(this)
+        );
+        uint256 _usableAmount = _totalStakedAmount - _notUsableAmount;
+        return _usableAmount;
+    }
+
+    function canStartTask() public view returns (bool) {
+        for (uint256 i = 0; i < rewardTokens.length; i++) {
+            uint256 _usableReward = getUsableReward(rewardTokens[i]);
+            uint256 _rewardAmount = getRewardAmount(rewardTokens[i]);
+            uint256 _startableTasks = _usableReward / _rewardAmount;
+            if (_startableTasks <= 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     function getRewardAmount(
         address tokenAddress
     ) public view returns (uint256) {
