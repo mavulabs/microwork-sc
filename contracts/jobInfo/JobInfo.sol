@@ -142,6 +142,20 @@ contract JobInfo is UpgradeableJobInfo {
         if (!success) revert TransferFailed();
     }
 
+    function isAReward(address tokenAddress) public view returns (bool) {
+        if (rewardTokensToAmount[tokenAddress] > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function getRewardAmount(
+        address tokenAddress
+    ) public view returns (uint256) {
+        return rewardTokensToAmount[tokenAddress];
+    }
+
     function getJobInfo()
         external
         view
