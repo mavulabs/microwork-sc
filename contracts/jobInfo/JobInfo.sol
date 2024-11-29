@@ -32,8 +32,7 @@ contract JobInfo is UpgradeableJobInfo {
         if (userToTaskId[_assignedTo] != 0)
             revert TaskAlreadyExists(_assignedTo);
 
-        uint256 _taskId = tasks.length;
-        tasks.push(_taskId);
+        uint256 _taskId = tasksLength + 1;
 
         taskIdToInfo[_taskId] = TaskInfo({
             taskAssignee: _assignedTo,
@@ -78,7 +77,7 @@ contract JobInfo is UpgradeableJobInfo {
         for (uint256 i = 0; i < rewardTokens.length; i++) {
             bool success = IERC20(rewardTokens[i]).transfer(
                 _userAddress,
-                cusdRewardAmount
+                rewardTokensToAmount[rewardTokens[i]]
             );
             if (!success) revert TransferFailed();
         }
@@ -150,25 +149,25 @@ contract JobInfo is UpgradeableJobInfo {
         }
     }
 
+    function getTotalInProgressTasks() public view returns (uint256) {
+        uint256 _totalInProgressTasks;
+        for (uint256 i = 1; i <= tasksLength; i++) {
+            TaskInfo memory _taskInfo = taskIdToInfo[i];
+            if (_taskInfo.taskStatus == 1) {
+                _totalInProgressTasks++;
+            }
+        }
+        return _totalInProgressTasks;
+    }
+
     function getRewardAmount(
         address tokenAddress
     ) public view returns (uint256) {
         return rewardTokensToAmount[tokenAddress];
     }
 
-    function getJobInfo()
-        external
-        view
-        returns (bytes memory, bool, bytes32, uint256, uint256, uint256)
-    {
-        return (
-            jobDescription,
-            jobStatus,
-            typeOfJob,
-            cusdRewardAmount,
-            mavuRewardAmount,
-            scoreRewardAmount
-        );
+    function getJobInfo() external view returns (bytes memory, bool, bytes32) {
+        return (jobDescription, jobStatus, typeOfJob);
     }
 
     function getTaskIdOfUser(
