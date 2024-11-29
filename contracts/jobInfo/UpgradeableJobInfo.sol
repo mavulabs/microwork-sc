@@ -22,9 +22,7 @@ abstract contract UpgradeableJobInfo is
 
     function __UpgradeableJobInfo_init(
         address _jobCreator,
-        bytes memory _jobDescription,
         bytes32 _typeOfJob,
-        uint256 _deadline,
         address[] calldata _rewardTokens,
         uint256[] calldata _rewardAmount
     ) internal onlyInitializing {
@@ -33,9 +31,7 @@ abstract contract UpgradeableJobInfo is
         __ReentrancyGuard_init();
         __BaseJobInfo_init(
             _jobCreator,
-            _jobDescription,
             _typeOfJob,
-            _deadline,
             _rewardTokens,
             _rewardAmount
         );

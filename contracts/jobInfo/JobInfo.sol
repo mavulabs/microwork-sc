@@ -7,17 +7,13 @@ import "./UpgradeableJobInfo.sol";
 contract JobInfo is UpgradeableJobInfo {
     function initialize(
         address _jobCreator,
-        bytes calldata _jobDescription,
         bytes32 _typeOfJob,
-        uint256 _deadline,
         address[] calldata _rewardTokens,
         uint256[] calldata _rewardAmount
     ) public initializer {
         __UpgradeableJobInfo_init(
             _jobCreator,
-            _jobDescription,
             _typeOfJob,
-            _deadline,
             _rewardTokens,
             _rewardAmount
         );
@@ -193,8 +189,8 @@ contract JobInfo is UpgradeableJobInfo {
         return rewardTokensToAmount[tokenAddress];
     }
 
-    function getJobInfo() external view returns (bytes memory, bool, bytes32) {
-        return (jobDescription, jobStatus, typeOfJob);
+    function getJobInfo() external view returns (bool, bytes32) {
+        return (jobStatus, typeOfJob);
     }
 
     function getTaskIdOfUser(

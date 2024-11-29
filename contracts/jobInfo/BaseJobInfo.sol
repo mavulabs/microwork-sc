@@ -22,11 +22,7 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
     error NotARewardToken(address tokenAddress);
     error NotEnoughRewardBalanceToStartTask();
 
-    event JobInitialized(
-        address indexed creator,
-        bytes32 indexed jobType,
-        uint256 deadline
-    );
+    event JobInitialized(address indexed creator, bytes32 indexed jobType);
     event TaskCreated(
         uint256 indexed taskId,
         address indexed assignee,
@@ -53,7 +49,6 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
     address[] rewardTokens;
     mapping(address => uint256) rewardTokensToAmount;
     address jobCreator;
-    bytes public jobDescription;
     bytes32 public typeOfJob;
     uint256 public tasksLength; //task starts from 1
     bool public jobStatus; // InProgress: true, Done: false
@@ -91,23 +86,19 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
 
     function __BaseJobInfo_init(
         address _jobCreator,
-        bytes memory _jobDescription,
         bytes32 _typeOfJob,
-        uint256 _deadline,
         address[] calldata _rewardTokens,
         uint256[] calldata _rewardAmounts
     ) internal onlyInitializing {
         if (_jobCreator == address(0)) revert ZeroAddress();
-        if (_deadline <= block.timestamp) revert InvalidDeadline(_deadline);
 
         jobCreator = _jobCreator;
-        jobDescription = _jobDescription;
         typeOfJob = _typeOfJob;
         jobStatus = true;
 
         _updateRewards(_rewardTokens, _rewardAmounts);
 
-        emit JobInitialized(_jobCreator, _typeOfJob, _deadline);
+        emit JobInitialized(_jobCreator, _typeOfJob);
     }
 
     function _updateRewards(
