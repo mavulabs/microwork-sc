@@ -5,8 +5,6 @@ import "./UpgradeableJobFactory.sol";
 import "../jobInfo/JobInfo.sol";
 
 contract JobFactory is UpgradeableJobFactory {
-    uint256 public constant MAX_BATCH_SIZE = 50;
-
     mapping(address => address[]) public creatorToJobs;
     uint256 public totalJobs;
 
@@ -20,8 +18,7 @@ contract JobFactory is UpgradeableJobFactory {
     ) public nonReentrant returns (address) {
         _validateJobDetails(_jobInfo);
 
-        JobInfo newJob = new JobInfo();
-        newJob.initialize(
+        JobInfo newJob = new JobInfo(
             _jobInfo.jobCreator,
             _jobInfo.typeOfJob,
             _jobInfo.rewardTokens,
