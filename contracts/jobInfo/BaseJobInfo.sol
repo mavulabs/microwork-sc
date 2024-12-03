@@ -70,26 +70,26 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
     }
 
     modifier taskExists(uint256 taskId) {
-        if (taskId >= tasksLength) revert TaskNotFound(taskId);
+        if (taskId > tasksLength) revert TaskNotFound(taskId);
         _;
     }
 
     modifier validToken(address tokenAddress) {
         for (uint256 i = 0; i < rewardTokens.length; i++) {
             if (rewardTokens[i] == tokenAddress) {
-                break;
+                _;
+                return;
             }
         }
         revert InvalidToken(tokenAddress);
-        _;
     }
 
     function __BaseJobInfo_init(
         address _jobCreator,
         bytes32 _typeOfJob,
-        address[] calldata _rewardTokens,
-        uint256[] calldata _rewardAmounts
-    ) internal onlyInitializing {
+        address[] memory _rewardTokens,
+        uint256[] memory _rewardAmounts
+    ) internal {
         if (_jobCreator == address(0)) revert ZeroAddress();
 
         jobCreator = _jobCreator;
@@ -102,8 +102,8 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
     }
 
     function _updateRewards(
-        address[] calldata _rewardTokens,
-        uint256[] calldata _rewardAmounts
+        address[] memory _rewardTokens,
+        uint256[] memory _rewardAmounts
     ) internal {
         if (_rewardTokens.length != _rewardAmounts.length) {
             revert ArrayLengthShouldBeEqual();

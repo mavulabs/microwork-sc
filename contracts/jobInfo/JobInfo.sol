@@ -4,14 +4,14 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./UpgradeableJobInfo.sol";
 
-contract JobInfo is UpgradeableJobInfo {
-    function initialize(
+contract JobInfo is BaseJobInfo {
+    constructor(
         address _jobCreator,
         bytes32 _typeOfJob,
-        address[] calldata _rewardTokens,
-        uint256[] calldata _rewardAmount
-    ) public initializer {
-        __UpgradeableJobInfo_init(
+        address[] memory _rewardTokens,
+        uint256[] memory _rewardAmount
+    ) {
+        __BaseJobInfo_init(
             _jobCreator,
             _typeOfJob,
             _rewardTokens,
@@ -22,20 +22,22 @@ contract JobInfo is UpgradeableJobInfo {
     function startTask(
         address _assignedTo,
         uint256 _deadline,
-        uint256 _taskStatus
+        // uint256 _taskStatus
+        address _evaluator
     ) public {
+        if (!jobStatus) revert JobAlreadyDone();
         if (_assignedTo == address(0)) revert ZeroAddress();
-        if (userToTaskId[_assignedTo] != 0)
-            revert TaskAlreadyExists(_assignedTo);
+        // if (userToTaskId[_assignedTo] != 0) revert TaskAlreadyExists(_assignedTo);
         if (!canStartTask()) revert NotEnoughRewardBalanceToStartTask();
 
-        uint256 _taskId = tasksLength + 1;
+        tasksLength++;
+        uint256 _taskId = tasksLength;
 
         taskIdToInfo[_taskId] = TaskInfo({
             taskAssignee: _assignedTo,
             assignmentEndTime: _deadline,
-            taskStatus: _taskStatus,
-            evaluator: address(0)
+            taskStatus: 1,
+            evaluator: _evaluator
         });
 
         userToTaskId[_assignedTo] = _taskId;
@@ -46,7 +48,7 @@ contract JobInfo is UpgradeableJobInfo {
     function updateTaskStatus(
         uint256 _taskId,
         uint256 _statusNo
-    ) public onlyJobCreator taskExists(_taskId) {
+    ) public taskExists(_taskId) {
         if (_statusNo > 7) revert InvalidTaskStatus(_statusNo);
         TaskInfo storage _taskInfo = taskIdToInfo[_taskId];
         if (
@@ -120,7 +122,7 @@ contract JobInfo is UpgradeableJobInfo {
     function setEvaluatorAddress(
         uint256 _taskId,
         address _evaluatorAddress
-    ) external {
+    ) external onlyJobCreator {
         TaskInfo storage _taskInfo = taskIdToInfo[_taskId];
         _taskInfo.evaluator = _evaluatorAddress;
     }
