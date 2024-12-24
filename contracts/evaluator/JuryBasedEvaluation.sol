@@ -24,6 +24,8 @@ contract JuryBasedEvaluation is ReentrancyGuard {
     error InvalidJuryJoinTimeRange();
     error InvalidVotingTimeRange();
     error JuryJoinMustEndBeforeVoting();
+    error InsufficientStakedEvaluators();
+    error InvalidNumberOfEvaluators();
 
     IERC20 public cUSD;
     uint256 public stakingAmount;
@@ -45,6 +47,7 @@ contract JuryBasedEvaluation is ReentrancyGuard {
 
     mapping(address => Evaluator) public evaluators;
     address[] public evaluatorAddresses;
+    address[] public selectedEvaluators;
     uint256 public yesVotes;
     uint256 public noVotes;
     bool public resultDeclared;
@@ -61,6 +64,7 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         uint256 voteStart,
         uint256 voteEnd
     );
+    event EvaluatorsSelected(address[] evaluators);
 
     modifier onlyAdmin() {
         if (msg.sender != admin) revert NotAdmin();
@@ -183,6 +187,43 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         );
     }
 
+    function selectRandomEvaluators(uint256 _numEvaluators) external {
+        if (_numEvaluators == 0 || _numEvaluators > getStakedEvaluatorsCount())
+            revert InvalidNumberOfEvaluators();
+
+        uint256 randomness = uint256(
+            keccak256(
+                abi.encodePacked(
+                    block.timestamp,
+                    block.prevrandao,
+                    msg.sender,
+                    blockhash(block.number - 1)
+                )
+            )
+        );
+
+        uint256 stakedCount = getStakedEvaluatorsCount();
+        delete selectedEvaluators;
+
+        address[] memory poolOfStaked = getStakedEvaluatorPool();
+
+        // Fisher-Yates shuffle
+        for (uint256 i = stakedCount - 1; i > 0; i--) {
+            uint256 j = uint256(keccak256(abi.encode(randomness, i))) % (i + 1);
+            (poolOfStaked[i], poolOfStaked[j]) = (
+                poolOfStaked[j],
+                poolOfStaked[i]
+            );
+        }
+
+        // Select first n evaluators
+        for (uint256 i = 0; i < _numEvaluators; i++) {
+            selectedEvaluators.push(poolOfStaked[i]);
+        }
+
+        emit EvaluatorsSelected(selectedEvaluators);
+    }
+
     function isJuryJoinActive() public view returns (bool) {
         return
             block.timestamp >= juryJoinStartTime &&
@@ -193,6 +234,28 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         return
             block.timestamp >= votingStartTime &&
             block.timestamp <= votingEndTime;
+    }
+
+    function getStakedEvaluatorsCount() public view returns (uint256 count) {
+        for (uint256 i = 0; i < evaluatorAddresses.length; i++) {
+            if (evaluators[evaluatorAddresses[i]].hasStaked) {
+                count++;
+            }
+        }
+    }
+
+    function getStakedEvaluatorPool() internal view returns (address[] memory) {
+        address[] memory stakedPool = new address[](getStakedEvaluatorsCount());
+        uint256 index = 0;
+
+        for (uint256 i = 0; i < evaluatorAddresses.length; i++) {
+            if (evaluators[evaluatorAddresses[i]].hasStaked) {
+                stakedPool[index] = evaluatorAddresses[i];
+                index++;
+            }
+        }
+
+        return stakedPool;
     }
 
     //timerange to join in the jury //function --> who will do , will be decided later
