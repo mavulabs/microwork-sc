@@ -35,6 +35,8 @@ contract JuryBasedEvaluation is ReentrancyGuard {
     uint256 public juryJoinEndTime;
     uint256 public votingStartTime;
     uint256 public votingEndTime;
+    uint256 public jurySize;
+    uint256 public juryCombinedAmount;
 
     address public admin;
 
@@ -71,9 +73,15 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         _;
     }
 
-    constructor(address _cUSDAddress, uint256 _stakingAmount) {
+    constructor(
+        address _cUSDAddress,
+        uint256 _jurySize,
+        uint256 _juryCombinedAmount
+    ) {
         cUSD = IERC20(_cUSDAddress);
-        stakingAmount = _stakingAmount;
+        jurySize = _jurySize;
+        juryCombinedAmount = _juryCombinedAmount;
+        stakingAmount = _juryCombinedAmount / _jurySize;
         admin = msg.sender;
     }
 
@@ -135,31 +143,6 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         }
 
         emit RewardClaimed(msg.sender, rewardAmount);
-    }
-
-    function getVotingStatus()
-        external
-        view
-        returns (
-            uint256 totalYes,
-            uint256 totalNo,
-            uint256 deadline,
-            bool isResultDeclared,
-            uint256 potentialReward
-        )
-    {
-        uint256 _rewardAmount = 0;
-        if (resultDeclared && evaluators[msg.sender].vote == winningVote) {
-            uint256 winningVoteCount = winningVote ? yesVotes : noVotes;
-            _rewardAmount = totalStaked / winningVoteCount;
-        }
-        return (
-            yesVotes,
-            noVotes,
-            votingDeadline,
-            resultDeclared,
-            _rewardAmount
-        );
     }
 
     function setTimeRanges(
@@ -224,6 +207,31 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         emit EvaluatorsSelected(selectedEvaluators);
     }
 
+    function getVotingStatus()
+        external
+        view
+        returns (
+            uint256 totalYes,
+            uint256 totalNo,
+            uint256 deadline,
+            bool isResultDeclared,
+            uint256 potentialReward
+        )
+    {
+        uint256 _rewardAmount = 0;
+        if (resultDeclared && evaluators[msg.sender].vote == winningVote) {
+            uint256 winningVoteCount = winningVote ? yesVotes : noVotes;
+            _rewardAmount = totalStaked / winningVoteCount;
+        }
+        return (
+            yesVotes,
+            noVotes,
+            votingDeadline,
+            resultDeclared,
+            _rewardAmount
+        );
+    }
+
     function isJuryJoinActive() public view returns (bool) {
         return
             block.timestamp >= juryJoinStartTime &&
@@ -263,4 +271,5 @@ contract JuryBasedEvaluation is ReentrancyGuard {
     //randomly select a predefined number of evaluators
     //withdraw
     //task status change by this contract
+    //supplier koto dite chai sheita nite hobe and jury size
 }
