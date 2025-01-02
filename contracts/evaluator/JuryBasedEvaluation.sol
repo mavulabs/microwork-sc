@@ -26,6 +26,7 @@ contract JuryBasedEvaluation is ReentrancyGuard {
     error JuryJoinMustEndBeforeVoting();
     error InsufficientStakedEvaluators();
     error InvalidNumberOfEvaluators();
+    error JoiningPeriodStarted();
 
     IERC20 public cUSD;
     uint256 public stakingAmount;
@@ -210,6 +211,20 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         }
 
         emit EvaluatorsSelected(selectedEvaluators);
+    }
+
+    function resetJurySize(uint256 _jurySize) external onlyAdmin {
+        if (block.timestamp >= juryJoinStartTime) revert JoiningPeriodStarted();
+        jurySize = _jurySize;
+        stakingAmount = juryCombinedAmount / _jurySize;
+    }
+
+    function resetJuryCombinedAmount(
+        uint256 _juryCombinedAmount
+    ) external onlyAdmin {
+        if (block.timestamp >= juryJoinStartTime) revert JoiningPeriodStarted();
+        juryCombinedAmount = _juryCombinedAmount;
+        stakingAmount = _juryCombinedAmount / jurySize;
     }
 
     function getVotingStatus()
