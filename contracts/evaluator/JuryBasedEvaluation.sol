@@ -27,10 +27,11 @@ contract JuryBasedEvaluation is ReentrancyGuard {
     error InsufficientStakedEvaluators();
     error InvalidNumberOfEvaluators();
     error JoiningPeriodStarted();
+    error NotASelectedEvaluator(address sender);
+    error SelectedEvaluator(address withdrawRequester);
 
     IERC20 public cUSD;
     uint256 public stakingAmount;
-    uint256 public votingDeadline;
     uint256 public totalStaked;
     uint256 public juryJoinStartTime;
     uint256 public juryJoinEndTime;
@@ -69,6 +70,18 @@ contract JuryBasedEvaluation is ReentrancyGuard {
     );
     event EvaluatorsSelected(address[] evaluators);
 
+    modifier onlySelectedEvaluator() {
+        bool isEvaluator;
+        for (uint i; i < selectedEvaluators.length; i++) {
+            if (selectedEvaluators[i] == msg.sender) {
+                isEvaluator = true;
+                break;
+            }
+        }
+        if (!isEvaluator) revert NotASelectedEvaluator(msg.sender);
+        _;
+    }
+
     modifier onlyAdmin() {
         if (msg.sender != admin) revert NotAdmin();
         _;
@@ -104,7 +117,9 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         emit EvaluatorJoined(msg.sender);
     }
 
-    function submitVote(bool _vote) external nonReentrant {
+    function submitVote(
+        bool _vote
+    ) external nonReentrant onlySelectedEvaluator {
         if (!evaluators[msg.sender].hasStaked) revert NotEvaluator();
         if (evaluators[msg.sender].hasVoted) revert AlreadyVoted();
         if (
@@ -134,14 +149,14 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         emit ResultDeclared(winningVote, yesVotes, noVotes);
     }
 
-    function claimReward() external nonReentrant {
+    function claimReward() external nonReentrant onlySelectedEvaluator {
         if (!resultDeclared) revert ResultNotDeclared();
         if (!evaluators[msg.sender].hasVoted) revert DidNotVote();
         if (evaluators[msg.sender].vote != winningVote) revert NotAWinner();
         if (evaluators[msg.sender].hasClaimedReward) revert AlreadyClaimed();
 
         uint256 winningVoteCount = winningVote ? yesVotes : noVotes;
-        uint256 rewardAmount = totalStaked / winningVoteCount;
+        uint256 rewardAmount = juryCombinedAmount / winningVoteCount;
 
         evaluators[msg.sender].hasClaimedReward = true;
         if (!cUSD.transfer(msg.sender, rewardAmount)) {
@@ -227,13 +242,42 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         stakingAmount = _juryCombinedAmount / jurySize;
     }
 
+    function withdraw() external {
+        if (evaluators[msg.sender].hasClaimedReward) revert AlreadyClaimed();
+
+        bool isEvaluator;
+        bool isSelected;
+
+        for (uint i; i < evaluatorAddresses.length; i++) {
+            if (evaluatorAddresses[i] == msg.sender) {
+                isEvaluator = true;
+                break;
+            }
+        }
+        if (!isEvaluator) revert NotEvaluator();
+
+        for (uint i; i < selectedEvaluators.length; i++) {
+            if (selectedEvaluators[i] == msg.sender) {
+                isSelected = true;
+                break;
+            }
+        }
+        if (isSelected) revert SelectedEvaluator(msg.sender);
+
+        evaluators[msg.sender].hasClaimedReward = true;
+        if (!cUSD.transfer(msg.sender, stakingAmount)) {
+            revert RewardTransferFailed();
+        }
+    }
+
     function getVotingStatus()
         external
         view
         returns (
             uint256 totalYes,
             uint256 totalNo,
-            uint256 deadline,
+            uint256 startTime,
+            uint256 endTime,
             bool isResultDeclared,
             uint256 potentialReward
         )
@@ -246,7 +290,8 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         return (
             yesVotes,
             noVotes,
-            votingDeadline,
+            votingStartTime,
+            votingEndTime,
             resultDeclared,
             _rewardAmount
         );
