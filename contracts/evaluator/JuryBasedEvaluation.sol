@@ -87,7 +87,10 @@ contract JuryBasedEvaluation is ReentrancyGuard {
 
     function joinAsEvaluator() external nonReentrant {
         if (evaluators[msg.sender].hasStaked) revert AlreadyJoined();
-        if (block.timestamp >= votingDeadline) revert JoiningPeriodEnded();
+        if (
+            block.timestamp < juryJoinStartTime &&
+            block.timestamp > juryJoinEndTime
+        ) revert JoiningPeriodEnded();
 
         if (!cUSD.transferFrom(msg.sender, address(this), stakingAmount)) {
             revert StakingFailed();
@@ -103,7 +106,9 @@ contract JuryBasedEvaluation is ReentrancyGuard {
     function submitVote(bool _vote) external nonReentrant {
         if (!evaluators[msg.sender].hasStaked) revert NotEvaluator();
         if (evaluators[msg.sender].hasVoted) revert AlreadyVoted();
-        if (block.timestamp >= votingDeadline) revert VotingPeriodEnded();
+        if (
+            block.timestamp < votingStartTime && block.timestamp > votingEndTime
+        ) revert VotingPeriodEnded();
 
         evaluators[msg.sender].hasVoted = true;
         evaluators[msg.sender].vote = _vote;
@@ -118,7 +123,7 @@ contract JuryBasedEvaluation is ReentrancyGuard {
     }
 
     function declareResult() external nonReentrant {
-        if (block.timestamp < votingDeadline) revert VotingPeriodNotEnded();
+        if (block.timestamp <= votingEndTime) revert VotingPeriodNotEnded();
         if (resultDeclared) revert ResultAlreadyDeclared();
         if (yesVotes + noVotes == 0) revert NoVotesCast();
 
