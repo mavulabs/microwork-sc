@@ -106,7 +106,7 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         if (!status) revert EvaluationProcessCancelled();
         if (evaluators[msg.sender].hasStaked) revert AlreadyJoined();
         if (
-            block.timestamp < juryJoinStartTime &&
+            block.timestamp < juryJoinStartTime ||
             block.timestamp > juryJoinEndTime
         ) revert JoiningPeriodEnded();
 
@@ -128,7 +128,7 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         if (!evaluators[msg.sender].hasStaked) revert NotEvaluator();
         if (evaluators[msg.sender].hasVoted) revert AlreadyVoted();
         if (
-            block.timestamp < votingStartTime && block.timestamp > votingEndTime
+            block.timestamp < votingStartTime || block.timestamp > votingEndTime
         ) revert VotingPeriodEnded();
 
         evaluators[msg.sender].hasVoted = true;
@@ -291,6 +291,8 @@ contract JuryBasedEvaluation is ReentrancyGuard {
             }
         }
     }
+
+    //function start needed
 
     function getVotingStatus()
         external
