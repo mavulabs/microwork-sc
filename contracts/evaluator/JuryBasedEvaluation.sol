@@ -33,6 +33,7 @@ contract JuryBasedEvaluation is ReentrancyGuard {
     error EvaluationProcessCancelled();
     error EvaluatorsSelectionDone();
     error InvalidTimeInput();
+    error EvaluationProcessOnGoing();
 
     IERC20 public cUSD;
     uint256 public stakingAmount;
@@ -181,7 +182,7 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         uint256 _juryJoinEndTime,
         uint256 _votingStartTime,
         uint256 _votingEndTime
-    ) external onlyAdmin {
+    ) public onlyAdmin {
         if (!status) revert EvaluationProcessCancelled();
         if (_juryJoinStartTime >= _juryJoinEndTime)
             revert InvalidJuryJoinTimeRange();
@@ -305,7 +306,21 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         }
     }
 
-    //function start needed? startAfterCancel
+    function restartAfterCancellation(
+        uint256 _juryJoinStartTime,
+        uint256 _juryJoinEndTime,
+        uint256 _votingStartTime,
+        uint256 _votingEndTime
+    ) external onlyAdmin {
+        if (status) revert EvaluationProcessOnGoing();
+        status = true;
+        setTimeRanges(
+            _juryJoinStartTime,
+            _juryJoinEndTime,
+            _votingStartTime,
+            _votingEndTime
+        );
+    }
 
     function getVotingStatus()
         external
