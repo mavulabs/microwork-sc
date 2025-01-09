@@ -27,9 +27,11 @@ contract JuryBasedEvaluation is ReentrancyGuard {
     error InsufficientStakedEvaluators();
     error InvalidNumberOfEvaluators();
     error JoiningPeriodStarted();
+    error JoiningPeriodNotEnded();
     error NotASelectedEvaluator(address sender);
     error SelectedEvaluator(address withdrawRequester);
     error EvaluationProcessCancelled();
+    error EvaluatorsSelectionDone();
 
     IERC20 public cUSD;
     uint256 public stakingAmount;
@@ -199,10 +201,12 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         );
     }
 
-    function selectRandomEvaluators(uint256 _numEvaluators) external {
+    function selectRandomEvaluators() external {
+        if (selectedEvaluators.length > 0) revert EvaluatorsSelectionDone();
         if (!status) revert EvaluationProcessCancelled();
-        if (_numEvaluators == 0 || _numEvaluators > getStakedEvaluatorsCount())
+        if (jurySize == 0 || jurySize > getStakedEvaluatorsCount())
             revert InvalidNumberOfEvaluators();
+        if (block.timestamp <= juryJoinEndTime) revert JoiningPeriodNotEnded();
 
         uint256 randomness = uint256(
             keccak256(
@@ -230,7 +234,7 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         }
 
         // Select first n evaluators
-        for (uint256 i = 0; i < _numEvaluators; i++) {
+        for (uint256 i = 0; i < jurySize; i++) {
             selectedEvaluators.push(poolOfStaked[i]);
         }
 
@@ -292,7 +296,7 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         }
     }
 
-    //function start needed
+    //function start needed? startAfterCancel
 
     function getVotingStatus()
         external
