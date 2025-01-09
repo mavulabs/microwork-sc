@@ -32,6 +32,7 @@ contract JuryBasedEvaluation is ReentrancyGuard {
     error SelectedEvaluator(address withdrawRequester);
     error EvaluationProcessCancelled();
     error EvaluatorsSelectionDone();
+    error InvalidTimeInput();
 
     IERC20 public cUSD;
     uint256 public stakingAmount;
@@ -187,6 +188,14 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         if (_votingStartTime >= _votingEndTime) revert InvalidVotingTimeRange();
         if (_juryJoinEndTime > _votingStartTime)
             revert JuryJoinMustEndBeforeVoting();
+
+        uint256 currentTime = block.timestamp;
+        if (
+            _juryJoinStartTime < currentTime ||
+            _juryJoinEndTime < currentTime ||
+            _votingStartTime < currentTime ||
+            _votingEndTime < currentTime
+        ) revert InvalidTimeInput();
 
         juryJoinStartTime = _juryJoinStartTime;
         juryJoinEndTime = _juryJoinEndTime;
