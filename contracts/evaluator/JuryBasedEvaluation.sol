@@ -62,6 +62,7 @@ contract JuryBasedEvaluation is ReentrancyGuard {
     uint256 public noVotes;
     bool public resultDeclared;
     bool public winningVote;
+    bool public areVotesEqual;
     IJobInfo public jobInfoContract;
 
     event EvaluatorJoined(address indexed evaluator);
@@ -75,6 +76,7 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         uint256 voteEnd
     );
     event EvaluatorsSelected(address[] evaluators);
+    event EqualVotes(uint256 numberOfVotes);
 
     modifier onlySelectedEvaluator() {
         bool isEvaluator;
@@ -129,11 +131,14 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         bool _vote
     ) external nonReentrant onlySelectedEvaluator {
         if (!status) revert EvaluationProcessCancelled();
-        if (!evaluators[msg.sender].hasStaked) revert NotEvaluator();
-        if (evaluators[msg.sender].hasVoted) revert AlreadyVoted();
-        if (
-            block.timestamp < votingStartTime || block.timestamp > votingEndTime
-        ) revert VotingPeriodEnded();
+        if (msg.sender != admin && !areVotesEqual) {
+            if (!evaluators[msg.sender].hasStaked) revert NotEvaluator();
+            if (evaluators[msg.sender].hasVoted) revert AlreadyVoted();
+            if (
+                block.timestamp < votingStartTime ||
+                block.timestamp > votingEndTime
+            ) revert VotingPeriodEnded();
+        }
 
         evaluators[msg.sender].hasVoted = true;
         evaluators[msg.sender].vote = _vote;
@@ -153,10 +158,14 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         if (resultDeclared) revert ResultAlreadyDeclared();
         if (yesVotes + noVotes == 0) revert NoVotesCast();
 
-        winningVote = yesVotes > noVotes;
-        resultDeclared = true;
-
-        emit ResultDeclared(winningVote, yesVotes, noVotes);
+        if (yesVotes == noVotes) {
+            areVotesEqual = true;
+            emit EqualVotes(yesVotes);
+        } else {
+            winningVote = yesVotes > noVotes;
+            resultDeclared = true;
+            emit ResultDeclared(winningVote, yesVotes, noVotes);
+        }
     }
 
     function claimReward() external nonReentrant onlySelectedEvaluator {
