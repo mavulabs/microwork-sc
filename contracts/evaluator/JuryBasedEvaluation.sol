@@ -37,6 +37,7 @@ contract JuryBasedEvaluation is ReentrancyGuard {
     error VotingPeriodStarted();
 
     IERC20 public cUSD;
+    uint256 taskId;
     uint256 public stakingAmount;
     uint256 public totalStaked;
     uint256 public juryJoinStartTime;
@@ -99,7 +100,9 @@ contract JuryBasedEvaluation is ReentrancyGuard {
     constructor(
         address _cUSDAddress,
         uint256 _jurySize,
-        uint256 _juryCombinedAmount
+        uint256 _juryCombinedAmount,
+        address _jobInfoContract,
+        uint256 _taskId
     ) {
         cUSD = IERC20(_cUSDAddress);
         jurySize = _jurySize;
@@ -107,6 +110,8 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         stakingAmount = _juryCombinedAmount / _jurySize;
         admin = msg.sender;
         status = true;
+        jobInfoContract = IJobInfo(_jobInfoContract);
+        taskId = _taskId;
         if (!cUSD.transferFrom(msg.sender, address(this), stakingAmount)) {
             revert StakingFailed();
         }
@@ -167,6 +172,11 @@ contract JuryBasedEvaluation is ReentrancyGuard {
             emit EqualVotes(yesVotes);
         } else {
             winningVote = yesVotes > noVotes;
+            if (winningVote) {
+                jobInfoContract.updateTaskStatus(taskId, 5);
+            } else {
+                jobInfoContract.updateTaskStatus(taskId, 7);
+            }
             resultDeclared = true;
             emit ResultDeclared(winningVote, yesVotes, noVotes);
         }
