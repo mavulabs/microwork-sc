@@ -34,6 +34,7 @@ contract JuryBasedEvaluation is ReentrancyGuard {
     error EvaluatorsSelectionDone();
     error InvalidTimeInput();
     error EvaluationProcessOnGoing();
+    error VotingPeriodStarted();
 
     IERC20 public cUSD;
     uint256 public stakingAmount;
@@ -106,6 +107,9 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         stakingAmount = _juryCombinedAmount / _jurySize;
         admin = msg.sender;
         status = true;
+        if (!cUSD.transferFrom(msg.sender, address(this), stakingAmount)) {
+            revert StakingFailed();
+        }
     }
 
     function joinAsEvaluator() external nonReentrant {
@@ -176,7 +180,8 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         if (evaluators[msg.sender].hasClaimedReward) revert AlreadyClaimed();
 
         uint256 winningVoteCount = winningVote ? yesVotes : noVotes;
-        uint256 rewardAmount = juryCombinedAmount / winningVoteCount;
+        uint256 rewardAmount = (juryCombinedAmount +
+            (stakingAmount * jurySize)) / winningVoteCount;
 
         evaluators[msg.sender].hasClaimedReward = true;
         if (!cUSD.transfer(msg.sender, rewardAmount)) {
@@ -193,10 +198,10 @@ contract JuryBasedEvaluation is ReentrancyGuard {
         uint256 _votingEndTime
     ) public onlyAdmin {
         if (!status) revert EvaluationProcessCancelled();
-        if (_juryJoinStartTime >= _juryJoinEndTime)
+        if (_juryJoinStartTime > _juryJoinEndTime)
             revert InvalidJuryJoinTimeRange();
-        if (_votingStartTime >= _votingEndTime) revert InvalidVotingTimeRange();
-        if (_juryJoinEndTime > _votingStartTime)
+        if (_votingStartTime > _votingEndTime) revert InvalidVotingTimeRange();
+        if (_juryJoinEndTime >= _votingStartTime)
             revert JuryJoinMustEndBeforeVoting();
 
         uint256 currentTime = block.timestamp;
@@ -307,6 +312,7 @@ contract JuryBasedEvaluation is ReentrancyGuard {
 
     function cancel() external onlyAdmin {
         if (!status) revert EvaluationProcessCancelled();
+        if (block.timestamp > votingStartTime) revert VotingPeriodStarted();
         status = false;
         for (uint256 i = 0; i < evaluatorAddresses.length; i++) {
             if (!cUSD.transfer(evaluatorAddresses[i], stakingAmount)) {
@@ -329,6 +335,11 @@ contract JuryBasedEvaluation is ReentrancyGuard {
             _votingStartTime,
             _votingEndTime
         );
+        for (uint256 i = 0; i < evaluatorAddresses.length; i++) {
+            delete evaluators[evaluatorAddresses[i]];
+        }
+        evaluatorAddresses = new address[](0);
+        selectedEvaluators = new address[](0);
     }
 
     function getVotingStatus()
