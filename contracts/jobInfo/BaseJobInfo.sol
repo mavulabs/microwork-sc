@@ -21,6 +21,7 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
     error ArrayLengthShouldBeEqual();
     error NotARewardToken(address tokenAddress);
     error NotEnoughRewardBalanceToStartTask();
+    error InvalidTaskCompletion(address user);
 
     event JobInitialized(address indexed creator, bytes32 indexed jobType);
     event TaskCreated(
@@ -60,6 +61,7 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
         uint256 assignmentEndTime;
         uint256 taskStatus; // 1 : InProgress
         address evaluator;
+        bytes32 taskBasedPlatformHash;
     }
 
     mapping(uint256 => TaskInfo) public taskIdToInfo;

@@ -27,7 +27,8 @@ contract JobInfo is BaseJobInfo {
         address _assignedTo,
         uint256 _deadline,
         // uint256 _taskStatus
-        address _evaluator
+        address _evaluator,
+        string memory _taskIdentifier
     ) public {
         if (!jobStatus) revert JobAlreadyDone();
         if (_assignedTo == address(0)) revert ZeroAddress();
@@ -37,11 +38,21 @@ contract JobInfo is BaseJobInfo {
         tasksLength++;
         uint256 _taskId = tasksLength;
 
+        bytes32 taskIdentifierHash;
+        if (evaluatorType == 333) {
+            taskIdentifierHash = hashString(
+                _taskIdentifier,
+                _taskId,
+                _assignedTo
+            );
+        }
+
         taskIdToInfo[_taskId] = TaskInfo({
             taskAssignee: _assignedTo,
             assignmentEndTime: _deadline,
             taskStatus: 1,
-            evaluator: _evaluator
+            evaluator: _evaluator,
+            taskBasedPlatformHash: taskIdentifierHash
         });
 
         userToTaskId[_assignedTo] = _taskId;
@@ -51,22 +62,31 @@ contract JobInfo is BaseJobInfo {
 
     function updateTaskStatus(
         uint256 _taskId,
-        uint256 _statusNo
+        uint256 _statusNo,
+        string memory _taskIdentifier
     ) public taskExists(_taskId) {
         TaskInfo storage _taskInfo = taskIdToInfo[_taskId];
-        if (
-            (evaluatorType == 333 && _taskInfo.evaluator != msg.sender) ||
-            (evaluatorType != 333 && evaluatorAddress != msg.sender)
-        ) revert OnlyEvaluatorCanChange(_taskId, _statusNo);
         if (_statusNo > 7) revert InvalidTaskStatus(_statusNo);
         if (
             (_statusNo == 1 || _statusNo == 2) &&
             msg.sender != _taskInfo.taskAssignee
         ) revert OnlyTaskAssigneeCanChange(_taskId, _statusNo);
-        if (
-            (_statusNo == 5 || _statusNo == 6 || _statusNo == 7) &&
-            msg.sender != _taskInfo.evaluator
-        ) revert OnlyEvaluatorCanChange(_taskId, _statusNo);
+        if (_statusNo == 5 || _statusNo == 6 || _statusNo == 7) {
+            if (
+                (evaluatorType == 333 && _taskInfo.evaluator != msg.sender) ||
+                (evaluatorType != 333 && evaluatorAddress != msg.sender)
+            ) revert OnlyEvaluatorCanChange(_taskId, _statusNo);
+            if (evaluatorType == 333) {
+                bytes32 _taskIdentifierHash = hashString(
+                    _taskIdentifier,
+                    _taskId,
+                    msg.sender
+                );
+                if (_taskInfo.taskBasedPlatformHash != _taskIdentifierHash) {
+                    revert InvalidTaskCompletion(msg.sender);
+                }
+            }
+        }
 
         uint256 oldStatus = _taskInfo.taskStatus;
         _taskInfo.taskStatus = _statusNo;
@@ -149,6 +169,14 @@ contract JobInfo is BaseJobInfo {
             totalAmountToStake
         );
         if (!success) revert TransferFailed();
+    }
+
+    function hashString(
+        string memory _input,
+        uint256 _taskId,
+        address _user
+    ) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(_input, _taskId, _user));
     }
 
     function isAReward(address tokenAddress) public view returns (bool) {
