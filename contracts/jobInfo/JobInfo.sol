@@ -8,12 +8,16 @@ contract JobInfo is BaseJobInfo {
     constructor(
         address _jobCreator,
         bytes32 _typeOfJob,
+        uint256 _evaluatorType,
+        address _evaluator,
         address[] memory _rewardTokens,
         uint256[] memory _rewardAmount
     ) {
         __BaseJobInfo_init(
             _jobCreator,
             _typeOfJob,
+            _evaluatorType,
+            _evaluator,
             _rewardTokens,
             _rewardAmount
         );
@@ -49,8 +53,12 @@ contract JobInfo is BaseJobInfo {
         uint256 _taskId,
         uint256 _statusNo
     ) public taskExists(_taskId) {
-        if (_statusNo > 7) revert InvalidTaskStatus(_statusNo);
         TaskInfo storage _taskInfo = taskIdToInfo[_taskId];
+        if (
+            (evaluatorType == 333 && _taskInfo.evaluator != msg.sender) ||
+            (evaluatorType != 333 && evaluatorAddress != msg.sender)
+        ) revert OnlyEvaluatorCanChange(_taskId, _statusNo);
+        if (_statusNo > 7) revert InvalidTaskStatus(_statusNo);
         if (
             (_statusNo == 1 || _statusNo == 2) &&
             msg.sender != _taskInfo.taskAssignee
@@ -65,6 +73,8 @@ contract JobInfo is BaseJobInfo {
 
         emit TaskStatusUpdated(_taskId, oldStatus, _statusNo);
 
+        //TODO: if failed , the status can be changed
+        // If not successful, the status must not be changed again
         if (_statusNo == 5) {
             _sendRewards(_taskInfo.taskAssignee);
         }

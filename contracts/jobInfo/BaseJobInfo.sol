@@ -53,6 +53,7 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
     uint256 public tasksLength; //task starts from 1
     bool public jobStatus; // InProgress: true, Done: false
     uint256 public evaluatorType;
+    address evaluatorAddress;
 
     struct TaskInfo {
         address taskAssignee;
@@ -87,6 +88,8 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
     function __BaseJobInfo_init(
         address _jobCreator,
         bytes32 _typeOfJob,
+        uint256 _evaluatorType,
+        address _evaluator,
         address[] memory _rewardTokens,
         uint256[] memory _rewardAmounts
     ) internal {
@@ -95,6 +98,8 @@ abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
         jobCreator = _jobCreator;
         typeOfJob = _typeOfJob;
         jobStatus = true;
+        evaluatorType = _evaluatorType;
+        evaluatorAddress = _evaluator;
 
         _updateRewards(_rewardTokens, _rewardAmounts);
 
