@@ -1,10 +1,7 @@
 require("@nomicfoundation/hardhat-toolbox");
 // require("@nomiclabs/hardhat-ethers");
 require("dotenv").config();
-
-const ALFAJORES_PRIVATE_KEY =
-    "42591bb3181d8e60d88b9e50eea9d872ef6f2a3fc6205d4c0b10862bbb6d0530";
-
+require("@openzeppelin/hardhat-upgrades");
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
     solidity: "0.8.24",
@@ -19,6 +16,10 @@ module.exports = {
         },
         goerli: {
             url: `https://goerli.infura.io/v3/` + process.env.API_KEY,
+            accounts: [ALFAJORES_PRIVATE_KEY],
+        },
+        celo: {
+            url: "https://forno.celo.org",
             accounts: [ALFAJORES_PRIVATE_KEY],
         },
         // goerli1: {
