@@ -24,7 +24,8 @@ contract JobFactory is UpgradeableJobFactory {
             _jobInfo.evaluatorType,
             _jobInfo.evaluator,
             _jobInfo.rewardTokens,
-            _jobInfo.rewardAmount
+            _jobInfo.rewardAmount,
+            _jobInfo.jobUniqueIdentifier
         );
 
         address jobAddress = address(newJob);

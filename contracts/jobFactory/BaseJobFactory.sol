@@ -18,6 +18,7 @@ abstract contract BaseJobFactory is ReentrancyGuardUpgradeable {
         address evaluator;
         address[] rewardTokens;
         uint256[] rewardAmount;
+        string jobUniqueIdentifier;
     }
 
     event JobRegistered(address indexed jobContract, address indexed creator);

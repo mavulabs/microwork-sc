@@ -22,6 +22,7 @@ abstract contract BaseJobInfo is ReentrancyGuard {
     error NotARewardToken(address tokenAddress);
     error NotEnoughRewardBalanceToStartTask();
     error InvalidTaskCompletion(address user);
+    error InvalidJob();
 
     event JobInitialized(address indexed creator, bytes32 indexed jobType);
     event TaskCreated(
@@ -51,6 +52,7 @@ abstract contract BaseJobInfo is ReentrancyGuard {
     mapping(address => uint256) rewardTokensToAmount;
     address jobCreator;
     bytes32 public typeOfJob;
+    bytes32 internal jobIdentifierHash;
     uint256 public tasksLength; //task starts from 1
     bool public jobStatus; // InProgress: true, Done: false
     uint256 public evaluatorType;
@@ -93,7 +95,8 @@ abstract contract BaseJobInfo is ReentrancyGuard {
         uint256 _evaluatorType,
         address _evaluator,
         address[] memory _rewardTokens,
-        uint256[] memory _rewardAmounts
+        uint256[] memory _rewardAmounts,
+        string memory _jobUniqueIdentifier
     ) internal {
         if (_jobCreator == address(0)) revert ZeroAddress();
 
@@ -102,6 +105,10 @@ abstract contract BaseJobInfo is ReentrancyGuard {
         jobStatus = true;
         evaluatorType = _evaluatorType;
         evaluatorAddress = _evaluator;
+        jobIdentifierHash = hashStringGeneratorForJob(
+            _jobUniqueIdentifier,
+            _typeOfJob
+        );
 
         _updateRewards(_rewardTokens, _rewardAmounts);
 
@@ -123,5 +130,12 @@ abstract contract BaseJobInfo is ReentrancyGuard {
             }
             rewardTokensToAmount[_rewardTokens[i]] = _rewardAmounts[i];
         }
+    }
+
+    function hashStringGeneratorForJob(
+        string memory _input,
+        bytes32 _typeOfJob
+    ) internal pure returns (bytes32) {
+        return keccak256(abi.encode(_input, _typeOfJob));
     }
 }

@@ -15,7 +15,8 @@ contract JobInfo is BaseJobInfo {
         uint256 _evaluatorType,
         address _evaluator,
         address[] memory _rewardTokens,
-        uint256[] memory _rewardAmount
+        uint256[] memory _rewardAmount,
+        string memory _jobUniqueIdentifier
     ) {
         __BaseJobInfo_init(
             _jobCreator,
@@ -23,7 +24,8 @@ contract JobInfo is BaseJobInfo {
             _evaluatorType,
             _evaluator,
             _rewardTokens,
-            _rewardAmount
+            _rewardAmount,
+            _jobUniqueIdentifier
         );
     }
 
@@ -32,13 +34,19 @@ contract JobInfo is BaseJobInfo {
         uint256 _deadline,
         // uint256 _taskStatus
         address _evaluator,
-        string memory _taskIdentifier
+        string memory _taskIdentifier,
+        string memory _jobIdentifier
     ) public {
         if (!jobStatus) revert JobAlreadyDone();
         if (_assignedTo == address(0)) revert ZeroAddress();
         if (userToTaskId[_assignedTo] != 0)
             revert TaskAlreadyExists(_assignedTo);
         if (!canStartTask()) revert NotEnoughRewardBalanceToStartTask();
+        bytes32 _jobIdentifierHash = hashStringGeneratorForJob(
+            _jobIdentifier,
+            typeOfJob
+        );
+        if (_jobIdentifierHash != jobIdentifierHash) revert InvalidJob();
 
         tasksLength++;
         uint256 _taskId = tasksLength;
@@ -72,8 +80,14 @@ contract JobInfo is BaseJobInfo {
     function updateTaskStatus(
         uint256 _taskId,
         uint256 _statusNo,
-        string memory _taskIdentifier
+        string memory _taskIdentifier,
+        string memory _jobIdentifier
     ) public taskExists(_taskId) {
+        bytes32 _jobIdentifierHash = hashStringGeneratorForJob(
+            _jobIdentifier,
+            typeOfJob
+        );
+        if (_jobIdentifierHash != jobIdentifierHash) revert InvalidJob();
         TaskInfo storage _taskInfo = taskIdToInfo[_taskId];
         if (_statusNo > 7) revert InvalidTaskStatus(_statusNo);
         if (
