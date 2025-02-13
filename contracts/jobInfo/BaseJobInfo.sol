@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-abstract contract BaseJobInfo is ReentrancyGuardUpgradeable {
+abstract contract BaseJobInfo is ReentrancyGuard {
     error UnauthorizedAccess(address caller);
     error InvalidDeadline(uint256 deadline);
     error TaskNotFound(uint256 taskId);

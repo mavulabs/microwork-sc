@@ -2,9 +2,13 @@
 pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./UpgradeableJobInfo.sol";
+import "./BaseJobInfo.sol";
 
 contract JobInfo is BaseJobInfo {
+    // Jury-Based Evaluation : 111,
+    // Supplier/Job Creator as Evaluator: 222
+    // No Evaluation: 333
+    // API-Based Evaluation: 444
     constructor(
         address _jobCreator,
         bytes32 _typeOfJob,
@@ -32,26 +36,31 @@ contract JobInfo is BaseJobInfo {
     ) public {
         if (!jobStatus) revert JobAlreadyDone();
         if (_assignedTo == address(0)) revert ZeroAddress();
-        // if (userToTaskId[_assignedTo] != 0) revert TaskAlreadyExists(_assignedTo);
+        if (userToTaskId[_assignedTo] != 0)
+            revert TaskAlreadyExists(_assignedTo);
         if (!canStartTask()) revert NotEnoughRewardBalanceToStartTask();
 
         tasksLength++;
         uint256 _taskId = tasksLength;
 
         bytes32 taskIdentifierHash;
+        address evaluator;
         if (evaluatorType == 333) {
             taskIdentifierHash = hashString(
                 _taskIdentifier,
                 _taskId,
                 _assignedTo
             );
+            evaluator = _assignedTo;
+        } else {
+            evaluator = _evaluator;
         }
 
         taskIdToInfo[_taskId] = TaskInfo({
             taskAssignee: _assignedTo,
             assignmentEndTime: _deadline,
             taskStatus: 1,
-            evaluator: _evaluator,
+            evaluator: evaluator,
             taskBasedPlatformHash: taskIdentifierHash
         });
 
@@ -176,7 +185,7 @@ contract JobInfo is BaseJobInfo {
         uint256 _taskId,
         address _user
     ) internal pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_input, _taskId, _user));
+        return keccak256(abi.encode(_input, _taskId, _user));
     }
 
     function isAReward(address tokenAddress) public view returns (bool) {
