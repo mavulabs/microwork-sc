@@ -8,30 +8,27 @@ import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol
  * @dev Base contract for job factory functionality
  */
 abstract contract BaseJobFactory is ReentrancyGuardUpgradeable {
-    // State variables
     address[] internal jobContracts;
     mapping(address => bool) public isJobContract;
 
-    // Structs
     struct JobDetails {
         address jobCreator;
         bytes32 typeOfJob;
+        uint256 evaluatorType;
+        address evaluator;
         address[] rewardTokens;
         uint256[] rewardAmount;
     }
 
-    // Events
     event JobRegistered(address indexed jobContract, address indexed creator);
     event JobBatchRegistered(address[] jobContracts, address indexed creator);
 
-    // Custom errors
     error InvalidJobDetails();
     error InvalidDeadline();
     error ZeroAddress();
     error BatchLimitExceeded();
     error EmptyBatch();
 
-    // Internal functions
     function __BaseJobFactory_init() internal onlyInitializing {
         __ReentrancyGuard_init();
     }
