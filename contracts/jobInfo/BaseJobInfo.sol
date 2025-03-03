@@ -25,11 +25,7 @@ abstract contract BaseJobInfo is ReentrancyGuard {
     error InvalidJob();
 
     event JobInitialized(address indexed creator, bytes32 indexed jobType);
-    event TaskCreated(
-        uint256 indexed taskId,
-        address indexed assignee,
-        uint256 deadline
-    );
+    event TaskCreated(uint256 indexed taskId, address indexed assignee);
     event TaskStatusUpdated(
         uint256 indexed taskId,
         uint256 oldStatus,
@@ -60,7 +56,6 @@ abstract contract BaseJobInfo is ReentrancyGuard {
 
     struct TaskInfo {
         address taskAssignee;
-        uint256 assignmentEndTime;
         uint256 taskStatus; // 1 : InProgress
         address evaluator;
         bytes32 taskBasedPlatformHash;

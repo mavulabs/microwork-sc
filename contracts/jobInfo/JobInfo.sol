@@ -30,15 +30,12 @@ contract JobInfo is BaseJobInfo {
     }
 
     function startTask(
-        address _assignedTo,
-        uint256 _deadline,
-        // uint256 _taskStatus
         address _evaluator,
         string memory _taskIdentifier,
         string memory _jobIdentifier
     ) public {
         if (!jobStatus) revert JobAlreadyDone();
-        if (_assignedTo == address(0)) revert ZeroAddress();
+        address _assignedTo = msg.sender;
         if (userToTaskId[_assignedTo] != 0)
             revert TaskAlreadyExists(_assignedTo);
         if (!canStartTask()) revert NotEnoughRewardBalanceToStartTask();
@@ -66,7 +63,6 @@ contract JobInfo is BaseJobInfo {
 
         taskIdToInfo[_taskId] = TaskInfo({
             taskAssignee: _assignedTo,
-            assignmentEndTime: _deadline,
             taskStatus: 1,
             evaluator: evaluator,
             taskBasedPlatformHash: taskIdentifierHash
@@ -74,7 +70,7 @@ contract JobInfo is BaseJobInfo {
 
         userToTaskId[_assignedTo] = _taskId;
 
-        emit TaskCreated(_taskId, _assignedTo, _deadline);
+        emit TaskCreated(_taskId, _assignedTo);
     }
 
     function updateTaskStatus(
