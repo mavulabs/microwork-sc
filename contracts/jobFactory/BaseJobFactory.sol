@@ -13,12 +13,9 @@ abstract contract BaseJobFactory is ReentrancyGuardUpgradeable {
 
     struct JobDetails {
         address jobCreator;
-        bytes32 typeOfJob;
-        uint256 evaluatorType;
-        address evaluator;
         address[] rewardTokens;
         uint256[] rewardAmount;
-        string jobUniqueIdentifier;
+        bytes32 jobUniqueIdentifier;
     }
 
     event JobRegistered(address indexed jobContract, address indexed creator);
@@ -54,16 +51,5 @@ abstract contract BaseJobFactory is ReentrancyGuardUpgradeable {
         jobContracts.push(jobContract);
         isJobContract[jobContract] = true;
         emit JobRegistered(jobContract, creator);
-    }
-
-    function _addJobContractBatch(
-        address[] memory newContracts,
-        address creator
-    ) internal virtual {
-        for (uint256 i = 0; i < newContracts.length; i++) {
-            jobContracts.push(newContracts[i]);
-            isJobContract[newContracts[i]] = true;
-        }
-        emit JobBatchRegistered(newContracts, creator);
     }
 }

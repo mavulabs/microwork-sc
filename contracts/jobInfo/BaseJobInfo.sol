@@ -6,31 +6,18 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 abstract contract BaseJobInfo is ReentrancyGuard {
     error UnauthorizedAccess(address caller);
     error InvalidDeadline(uint256 deadline);
-    error TaskNotFound(uint256 taskId);
-    error InvalidTaskStatus(uint256 status);
     error ZeroAddress();
     error InsufficientBalance();
     error TransferFailed();
     error JobInProgress();
     error JobAlreadyDone();
     error InvalidRewardAmount();
-    error TaskAlreadyExists(address assignee);
     error InvalidToken(address token);
-    error OnlyEvaluatorCanChange(uint256 taskId, uint256 status);
-    error OnlyTaskAssigneeCanChange(uint256 taskId, uint256 status);
     error ArrayLengthShouldBeEqual();
     error NotARewardToken(address tokenAddress);
-    error NotEnoughRewardBalanceToStartTask();
-    error InvalidTaskCompletion(address user);
     error InvalidJob();
 
-    event JobInitialized(address indexed creator, bytes32 indexed jobType);
-    event TaskCreated(uint256 indexed taskId, address indexed assignee);
-    event TaskStatusUpdated(
-        uint256 indexed taskId,
-        uint256 oldStatus,
-        uint256 newStatus
-    );
+    event JobInitialized(address indexed creator);
     event RewardsUpdated(uint256 cusdAmount);
     event RewardsSent(address indexed recipient);
     event WithdrawalRequested(
@@ -47,30 +34,11 @@ abstract contract BaseJobInfo is ReentrancyGuard {
     address[] rewardTokens;
     mapping(address => uint256) rewardTokensToAmount;
     address jobCreator;
-    bytes32 public typeOfJob;
     bytes32 internal jobIdentifierHash;
-    uint256 public tasksLength; //task starts from 1
     bool public jobStatus; // InProgress: true, Done: false
-    uint256 public evaluatorType;
-    address evaluatorAddress;
-
-    struct TaskInfo {
-        address taskAssignee;
-        uint256 taskStatus; // 1 : InProgress
-        address evaluator;
-        bytes32 taskBasedPlatformHash;
-    }
-
-    mapping(uint256 => TaskInfo) public taskIdToInfo;
-    mapping(address => uint256) public userToTaskId;
 
     modifier onlyJobCreator() {
         if (msg.sender != jobCreator) revert UnauthorizedAccess(msg.sender);
-        _;
-    }
-
-    modifier taskExists(uint256 taskId) {
-        if (taskId > tasksLength) revert TaskNotFound(taskId);
         _;
     }
 
@@ -86,28 +54,19 @@ abstract contract BaseJobInfo is ReentrancyGuard {
 
     function __BaseJobInfo_init(
         address _jobCreator,
-        bytes32 _typeOfJob,
-        uint256 _evaluatorType,
-        address _evaluator,
         address[] memory _rewardTokens,
         uint256[] memory _rewardAmounts,
-        string memory _jobUniqueIdentifier
+        bytes32 _jobUniqueIdentifier
     ) internal {
         if (_jobCreator == address(0)) revert ZeroAddress();
 
         jobCreator = _jobCreator;
-        typeOfJob = _typeOfJob;
         jobStatus = true;
-        evaluatorType = _evaluatorType;
-        evaluatorAddress = _evaluator;
-        jobIdentifierHash = hashStringGeneratorForJob(
-            _jobUniqueIdentifier,
-            _typeOfJob
-        );
+        jobIdentifierHash = hashStringGeneratorForJob(_jobUniqueIdentifier);
 
         _updateRewards(_rewardTokens, _rewardAmounts);
 
-        emit JobInitialized(_jobCreator, _typeOfJob);
+        emit JobInitialized(_jobCreator);
     }
 
     function _updateRewards(
@@ -128,9 +87,8 @@ abstract contract BaseJobInfo is ReentrancyGuard {
     }
 
     function hashStringGeneratorForJob(
-        string memory _input,
-        bytes32 _typeOfJob
+        bytes32 _input
     ) internal pure returns (bytes32) {
-        return keccak256(abi.encode(_input, _typeOfJob));
+        return keccak256(abi.encode(_input));
     }
 }
