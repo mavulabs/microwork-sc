@@ -19,6 +19,7 @@ contract JobInfo is BaseJobInfo {
         );
     }
 
+<<<<<<< Updated upstream
     function _sendRewards(
         address _userAddress,
         bytes32 _jobIdentifier
@@ -27,14 +28,24 @@ contract JobInfo is BaseJobInfo {
         bytes32 _jobIdentifierHash = hashStringGeneratorForJob(_jobIdentifier);
         if (_jobIdentifierHash != jobIdentifierHash) revert InvalidJob();
 
+=======
+    function sendRewards(bytes32 _jobIdentifier) external nonReentrant {
+        if (msg.sender == address(0)) revert ZeroAddress();
+        if (hasReceivedReward[msg.sender])
+            revert RewardAlreadyDistributed(msg.sender);
+        bytes32 _jobIdentifierHash = hashStringGeneratorForJob(_jobIdentifier);
+        if (_jobIdentifierHash != jobIdentifierHash) revert InvalidJob();
+
+        hasReceivedReward[msg.sender] = true;
+>>>>>>> Stashed changes
         for (uint256 i = 0; i < rewardTokens.length; i++) {
             bool success = IERC20(rewardTokens[i]).transfer(
-                _userAddress,
+                msg.sender,
                 rewardTokensToAmount[rewardTokens[i]]
             );
             if (!success) revert TransferFailed();
         }
-        emit RewardsSent(_userAddress);
+        emit RewardsSent(msg.sender);
     }
 
     function setRewardsAmount(
