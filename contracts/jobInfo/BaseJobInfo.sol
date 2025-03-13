@@ -5,10 +5,6 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 abstract contract BaseJobInfo is ReentrancyGuard {
     error UnauthorizedAccess(address caller);
-<<<<<<< Updated upstream
-    error InvalidDeadline(uint256 deadline);
-=======
->>>>>>> Stashed changes
     error ZeroAddress();
     error InsufficientBalance();
     error TransferFailed();
@@ -40,10 +36,7 @@ abstract contract BaseJobInfo is ReentrancyGuard {
     address jobCreator;
     bytes32 internal jobIdentifierHash;
     bool public jobStatus; // InProgress: true, Done: false
-<<<<<<< Updated upstream
-=======
     mapping(address => bool) public hasReceivedReward;
->>>>>>> Stashed changes
 
     modifier onlyJobCreator() {
         if (msg.sender != jobCreator) revert UnauthorizedAccess(msg.sender);
