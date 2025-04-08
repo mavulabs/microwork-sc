@@ -54,7 +54,7 @@ contract JobInfo is BaseJobInfo {
         emit WithdrawalCompleted(jobCreator, amount, tokenAddress);
     }
 
-    function chnageJobStatus() external nonReentrant onlyJobCreator {
+    function changeJobStatus() external nonReentrant onlyJobCreator {
         if (!jobStatus) revert JobAlreadyDone();
 
         jobStatus = false;
