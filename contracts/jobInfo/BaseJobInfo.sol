@@ -92,10 +92,4 @@ abstract contract BaseJobInfo is ReentrancyGuard {
             rewardTokensToAmount[_rewardTokens[i]] = _rewardAmounts[i];
         }
     }
-
-    function hashStringGeneratorForJob(
-        bytes32 _input
-    ) internal pure returns (bytes32) {
-        return keccak256(abi.encode(_input));
-    }
 }
