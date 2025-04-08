@@ -13,24 +13,20 @@ contract JobFactory is UpgradeableJobFactory {
         totalJobs = 0;
     }
 
-    function registerJob(
-        JobDetails calldata _jobInfo
-    ) public nonReentrant returns (address) {
+    function registerJob(JobDetails calldata _jobInfo) public nonReentrant {
         _validateJobDetails(_jobInfo);
 
         JobInfo newJob = new JobInfo(
             _jobInfo.jobCreator,
+            _jobInfo.protocolWallet,
             _jobInfo.rewardTokens,
-            _jobInfo.rewardAmount,
-            _jobInfo.jobUniqueIdentifier
+            _jobInfo.rewardAmount
         );
 
         address jobAddress = address(newJob);
         _addJobContract(jobAddress, _jobInfo.jobCreator);
         creatorToJobs[_jobInfo.jobCreator].push(jobAddress);
         totalJobs++;
-
-        return jobAddress;
     }
 
     function getCompletedJobs() public view returns (address[] memory) {

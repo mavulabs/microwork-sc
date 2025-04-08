@@ -13,9 +13,9 @@ abstract contract BaseJobFactory is ReentrancyGuardUpgradeable {
 
     struct JobDetails {
         address jobCreator;
+        address protocolWallet;
         address[] rewardTokens;
         uint256[] rewardAmount;
-        bytes32 jobUniqueIdentifier;
     }
 
     event JobRegistered(address indexed jobContract, address indexed creator);
