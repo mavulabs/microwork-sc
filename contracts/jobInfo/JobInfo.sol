@@ -7,34 +7,33 @@ import "./BaseJobInfo.sol";
 contract JobInfo is BaseJobInfo {
     constructor(
         address _jobCreator,
+        address _protocolWallet,
         address[] memory _rewardTokens,
-        uint256[] memory _rewardAmount,
-        bytes32 _jobUniqueIdentifier
+        uint256[] memory _rewardAmount
     ) {
         __BaseJobInfo_init(
             _jobCreator,
+            _protocolWallet,
             _rewardTokens,
-            _rewardAmount,
-            _jobUniqueIdentifier
+            _rewardAmount
         );
     }
 
-    function sendRewards(bytes32 _jobIdentifier) external nonReentrant {
-        if (msg.sender == address(0)) revert ZeroAddress();
-        if (hasReceivedReward[msg.sender])
-            revert RewardAlreadyDistributed(msg.sender);
-        bytes32 _jobIdentifierHash = hashStringGeneratorForJob(_jobIdentifier);
-        if (_jobIdentifierHash != jobIdentifierHash) revert InvalidJob();
+    function sendRewards(
+        address _user
+    ) external onlyProtocolWallet nonReentrant {
+        if (_user == address(0)) revert ZeroAddress();
+        if (hasReceivedReward[_user]) revert RewardAlreadyDistributed(_user);
 
-        hasReceivedReward[msg.sender] = true;
+        hasReceivedReward[_user] = true;
         for (uint256 i = 0; i < rewardTokens.length; i++) {
             bool success = IERC20(rewardTokens[i]).transfer(
-                msg.sender,
+                _user,
                 rewardTokensToAmount[rewardTokens[i]]
             );
             if (!success) revert TransferFailed();
         }
-        emit RewardsSent(msg.sender);
+        emit RewardsSent(_user);
     }
 
     function setRewardsAmount(
