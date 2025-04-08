@@ -37,9 +37,15 @@ abstract contract BaseJobInfo is ReentrancyGuard {
     bytes32 internal jobIdentifierHash;
     bool public jobStatus; // InProgress: true, Done: false
     mapping(address => bool) public hasReceivedReward;
+    address protocolWallet;
 
     modifier onlyJobCreator() {
         if (msg.sender != jobCreator) revert UnauthorizedAccess(msg.sender);
+        _;
+    }
+
+    modifier onlyProtocolWallet() {
+        if (msg.sender != protocolWallet) revert UnauthorizedAccess(msg.sender);
         _;
     }
 
@@ -55,15 +61,15 @@ abstract contract BaseJobInfo is ReentrancyGuard {
 
     function __BaseJobInfo_init(
         address _jobCreator,
+        address _protocolWallet,
         address[] memory _rewardTokens,
-        uint256[] memory _rewardAmounts,
-        bytes32 _jobUniqueIdentifier
+        uint256[] memory _rewardAmounts
     ) internal {
         if (_jobCreator == address(0)) revert ZeroAddress();
 
         jobCreator = _jobCreator;
+        protocolWallet = _protocolWallet;
         jobStatus = true;
-        jobIdentifierHash = hashStringGeneratorForJob(_jobUniqueIdentifier);
 
         _updateRewards(_rewardTokens, _rewardAmounts);
 
