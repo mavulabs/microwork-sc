@@ -21,7 +21,7 @@ contract JobInfo is BaseJobInfo {
 
     function sendRewards(
         address _user
-    ) external onlyProtocolWallet nonReentrant {
+    ) external onlyAuthorizedAccess nonReentrant {
         if (_user == address(0)) revert ZeroAddress();
         if (hasReceivedReward[_user]) revert RewardAlreadyDistributed(_user);
 
