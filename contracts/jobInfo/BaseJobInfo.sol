@@ -34,7 +34,6 @@ abstract contract BaseJobInfo is ReentrancyGuard {
     address[] rewardTokens;
     mapping(address => uint256) rewardTokensToAmount;
     address jobCreator;
-    bytes32 internal jobIdentifierHash;
     bool public jobStatus; // InProgress: true, Done: false
     mapping(address => bool) public hasReceivedReward;
     address protocolWallet;
