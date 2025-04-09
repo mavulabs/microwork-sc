@@ -36,6 +36,52 @@ contract JobInfo is BaseJobInfo {
         emit RewardsSent(_user);
     }
 
+    function batchSendRewards(
+        address[] calldata _users
+    )
+        external
+        onlyAuthorizedAccess
+        nonReentrant
+        returns (uint256 successCount)
+    {
+        uint256 userCount = _users.length;
+
+        uint256 tokenCount = rewardTokens.length;
+        address[] memory tokens = new address[](tokenCount);
+        uint256[] memory amounts = new uint256[](tokenCount);
+
+        for (uint256 i = 0; i < tokenCount; i++) {
+            tokens[i] = rewardTokens[i];
+            amounts[i] = rewardTokensToAmount[tokens[i]];
+        }
+
+        for (uint256 i = 0; i < userCount; i++) {
+            address user = _users[i];
+            if (user == address(0) || hasReceivedReward[user]) {
+                continue;
+            }
+
+            hasReceivedReward[user] = true;
+            bool allTransfersSuccessful = true;
+
+            for (uint256 j = 0; j < tokenCount; j++) {
+                try IERC20(tokens[j]).transfer(user, amounts[j]) {} catch {
+                    allTransfersSuccessful = false;
+                    break;
+                }
+            }
+
+            if (allTransfersSuccessful) {
+                successCount++;
+                emit RewardsSent(user);
+            } else {
+                hasReceivedReward[user] = false;
+            }
+        }
+
+        emit BatchRewardsSent(_users, successCount);
+    }
+
     function setRewardsAmount(
         address[] calldata _rewardTokens,
         uint256[] calldata _rewardAmounts

@@ -30,6 +30,7 @@ abstract contract BaseJobInfo is ReentrancyGuard {
         uint256 amount,
         address tokenAddress
     );
+    event BatchRewardsSent(address[] indexed _users, uint256 successCount);
 
     address[] rewardTokens;
     mapping(address => uint256) rewardTokensToAmount;
