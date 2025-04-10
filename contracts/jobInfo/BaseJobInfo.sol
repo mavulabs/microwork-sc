@@ -16,6 +16,7 @@ abstract contract BaseJobInfo is ReentrancyGuard {
     error NotARewardToken(address tokenAddress);
     error InvalidJob();
     error RewardAlreadyDistributed(address worker);
+    error OnlyAdminCanChange(address sender);
 
     event JobInitialized(address indexed creator);
     event RewardsUpdated(uint256 cusdAmount);
@@ -51,6 +52,11 @@ abstract contract BaseJobInfo is ReentrancyGuard {
         _;
     }
 
+    modifier onlyAdmin() {
+        if (msg.sender != adminWallet) revert OnlyAdminCanChange(msg.sender);
+        _;
+    }
+
     modifier validToken(address tokenAddress) {
         for (uint256 i = 0; i < rewardTokens.length; i++) {
             if (rewardTokens[i] == tokenAddress) {
@@ -64,6 +70,7 @@ abstract contract BaseJobInfo is ReentrancyGuard {
     function __BaseJobInfo_init(
         address _jobCreator,
         address _protocolWallet,
+        address _adminWallet,
         address[] memory _rewardTokens,
         uint256[] memory _rewardAmounts
     ) internal {
@@ -71,6 +78,7 @@ abstract contract BaseJobInfo is ReentrancyGuard {
 
         jobCreator = _jobCreator;
         protocolWallet = _protocolWallet;
+        adminWallet = _adminWallet;
         jobStatus = true;
 
         _updateRewards(_rewardTokens, _rewardAmounts);
