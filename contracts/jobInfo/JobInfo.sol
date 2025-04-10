@@ -107,6 +107,12 @@ contract JobInfo is BaseJobInfo {
         jobStatus = false;
     }
 
+    function changeProtocolWallet(
+        address _newProtocolWallet
+    ) external nonReentrant onlyAdmin {
+        protocolWallet = _newProtocolWallet;
+    }
+
     function isAReward(address tokenAddress) public view returns (bool) {
         if (rewardTokensToAmount[tokenAddress] > 0) {
             return true;
