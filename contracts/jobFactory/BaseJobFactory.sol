@@ -27,6 +27,7 @@ abstract contract BaseJobFactory is ReentrancyGuardUpgradeable {
     error ZeroAddress();
     error BatchLimitExceeded();
     error EmptyBatch();
+    error ZeroTokenAddress();
 
     function __BaseJobFactory_init() internal onlyInitializing {
         __ReentrancyGuard_init();
@@ -44,7 +45,7 @@ abstract contract BaseJobFactory is ReentrancyGuardUpgradeable {
         }
         for (uint256 i = 0; i < details.rewardTokens.length; i++) {
             if (details.rewardTokens[i] == address(0)) {
-                revert ZeroAddress();
+                revert ZeroTokenAddress();
             }
         }
     }
