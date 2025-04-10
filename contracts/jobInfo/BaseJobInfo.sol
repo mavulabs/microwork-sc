@@ -69,8 +69,8 @@ abstract contract BaseJobInfo is ReentrancyGuard {
 
     function __BaseJobInfo_init(
         address _jobCreator,
-        address _protocolWallet,
         address _adminWallet,
+        address _protocolWallet,
         address[] memory _rewardTokens,
         uint256[] memory _rewardAmounts
     ) internal {
