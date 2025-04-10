@@ -127,7 +127,24 @@ contract JobInfo is BaseJobInfo {
         return rewardTokensToAmount[tokenAddress];
     }
 
-    function getJobInfo() external view returns (address, bool) {
-        return (jobCreator, jobStatus);
+    function getJobInfo()
+        external
+        view
+        returns (address, address, address, bool)
+    {
+        return (jobCreator, adminWallet, protocolWallet, jobStatus);
+    }
+
+    function getRewardDetails()
+        external
+        view
+        returns (address[] memory, uint256[] memory)
+    {
+        uint256 l = rewardTokens.length;
+        uint256[] memory rewardAmount = new uint256[](l);
+        for (uint256 i = 0; i < l; i++) {
+            rewardAmount[i] = rewardTokensToAmount[rewardTokens[i]];
+        }
+        return (rewardTokens, rewardAmount);
     }
 }
