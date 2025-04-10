@@ -47,7 +47,7 @@ abstract contract BaseJobInfo is ReentrancyGuard {
     }
 
     modifier onlyAuthorizedAccess() {
-        if (msg.sender != protocolWallet || msg.sender != jobCreator)
+        if (msg.sender != protocolWallet && msg.sender != jobCreator)
             revert UnauthorizedAccess(msg.sender);
         _;
     }
