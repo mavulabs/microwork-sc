@@ -18,6 +18,7 @@ contract JobFactory is UpgradeableJobFactory {
 
         JobInfo newJob = new JobInfo(
             _jobInfo.jobCreator,
+            _jobInfo.adminWallet,
             _jobInfo.protocolWallet,
             _jobInfo.rewardTokens,
             _jobInfo.rewardAmount

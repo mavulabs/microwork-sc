@@ -7,12 +7,14 @@ import "./BaseJobInfo.sol";
 contract JobInfo is BaseJobInfo {
     constructor(
         address _jobCreator,
+        address _adminWallet,
         address _protocolWallet,
         address[] memory _rewardTokens,
         uint256[] memory _rewardAmount
     ) {
         __BaseJobInfo_init(
             _jobCreator,
+            _adminWallet,
             _protocolWallet,
             _rewardTokens,
             _rewardAmount

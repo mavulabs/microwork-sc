@@ -38,6 +38,7 @@ abstract contract BaseJobInfo is ReentrancyGuard {
     bool public jobStatus; // InProgress: true, Done: false
     mapping(address => bool) public hasReceivedReward;
     address protocolWallet;
+    address adminWallet;
 
     modifier onlyJobCreator() {
         if (msg.sender != jobCreator) revert UnauthorizedAccess(msg.sender);

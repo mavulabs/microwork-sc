@@ -13,6 +13,7 @@ abstract contract BaseJobFactory is ReentrancyGuardUpgradeable {
 
     struct JobDetails {
         address jobCreator;
+        address adminWallet;
         address protocolWallet;
         address[] rewardTokens;
         uint256[] rewardAmount;
@@ -34,7 +35,11 @@ abstract contract BaseJobFactory is ReentrancyGuardUpgradeable {
     function _validateJobDetails(
         JobDetails calldata details
     ) internal view virtual {
-        if (details.jobCreator == address(0)) {
+        if (
+            details.jobCreator == address(0) ||
+            details.protocolWallet == address(0) ||
+            details.adminWallet == address(0)
+        ) {
             revert ZeroAddress();
         }
         for (uint256 i = 0; i < details.rewardTokens.length; i++) {
