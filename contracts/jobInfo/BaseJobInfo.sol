@@ -17,6 +17,8 @@ abstract contract BaseJobInfo is ReentrancyGuard {
     error InvalidJob();
     error RewardAlreadyDistributed(address worker);
     error OnlyAdminCanChange(address sender);
+    error InvalidSignature();
+    error NonceAlreadyUsed(bytes32 nonce);
 
     event JobInitialized(address indexed creator);
     event RewardsUpdated(uint256 cusdAmount);
@@ -38,6 +40,7 @@ abstract contract BaseJobInfo is ReentrancyGuard {
     address jobCreator;
     bool public jobStatus; // InProgress: true, Done: false
     mapping(address => bool) public hasReceivedReward;
+    mapping(bytes32 => bool) public usedNonces; // Track used nonces to prevent replay attacks
     address protocolWallet;
     address adminWallet;
 
