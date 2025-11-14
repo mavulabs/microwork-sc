@@ -170,6 +170,7 @@ contract JobInfo is BaseJobInfo {
     function changeProtocolWallet(
         address _newProtocolWallet
     ) external nonReentrant onlyAdmin {
+        if (_newProtocolWallet == address(0)) revert ZeroAddress();
         protocolWallet = _newProtocolWallet;
     }
 

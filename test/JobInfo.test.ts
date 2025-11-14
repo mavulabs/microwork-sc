@@ -758,5 +758,15 @@ describe("JobInfo Contract", function () {
             const [, , protocolWallet] = await jobInfo.getJobInfo();
             expect(protocolWallet).to.equal(deployer.address);
         });
+
+        it("Should revert when trying to set protocol wallet to zero address", async function () {
+            const { jobInfo, adminWallet } = await loadFixture(deployContracts);
+
+            await expect(
+                jobInfo
+                    .connect(adminWallet)
+                    .changeProtocolWallet(ethers.ZeroAddress)
+            ).to.be.revertedWithCustomError(jobInfo, "ZeroAddress");
+        });
     });
 });
