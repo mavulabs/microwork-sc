@@ -37,6 +37,7 @@ contract JobInfo is BaseJobInfo {
             );
             if (!success) revert TransferFailed();
         }
+        totalRewardsDistributed++;
         emit RewardsSent(_user);
     }
 
@@ -95,6 +96,7 @@ contract JobInfo is BaseJobInfo {
             if (!success) revert TransferFailed();
         }
 
+        totalRewardsDistributed++;
         emit RewardsSent(claimant);
     }
 
@@ -135,6 +137,7 @@ contract JobInfo is BaseJobInfo {
 
             if (allTransfersSuccessful) {
                 successCount++;
+                totalRewardsDistributed++;
                 emit RewardsSent(user);
             } else {
                 hasReceivedReward[user] = false;

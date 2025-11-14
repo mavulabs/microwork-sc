@@ -703,6 +703,106 @@ describe("JobInfo Contract", function () {
             );
         });
 
+        it("Should revert when trying to set rewards amount after job is completed", async function () {
+            const { jobInfo, jobCreator, rewardTokens } = await loadFixture(
+                deployContracts
+            );
+
+            // Complete the job
+            await jobInfo.connect(jobCreator).changeJobStatus();
+
+            const newAmounts = [
+                ethers.parseEther("50"),
+                ethers.parseEther("75"),
+            ];
+
+            await expect(
+                jobInfo
+                    .connect(jobCreator)
+                    .setRewardsAmount(rewardTokens, newAmounts)
+            ).to.be.revertedWithCustomError(jobInfo, "JobAlreadyDone");
+        });
+
+        it("Should revert when trying to set rewards amount after rewards have been distributed", async function () {
+            const { jobInfo, jobCreator, rewardTokens, user1, token1, token2 } =
+                await loadFixture(deployContracts);
+
+            // Send rewards to a worker
+            await token1.transfer(jobInfo.target, ethers.parseEther("1000"));
+            await token2.transfer(jobInfo.target, ethers.parseEther("1000"));
+            await jobInfo.connect(jobCreator).sendRewards(user1.address);
+
+            const newAmounts = [
+                ethers.parseEther("50"),
+                ethers.parseEther("75"),
+            ];
+
+            await expect(
+                jobInfo
+                    .connect(jobCreator)
+                    .setRewardsAmount(rewardTokens, newAmounts)
+            ).to.be.revertedWithCustomError(
+                jobInfo,
+                "RewardsAlreadyDistributed"
+            );
+        });
+
+        it("Should revert when trying to set reward amount to zero", async function () {
+            const { jobInfo, jobCreator, rewardTokens } = await loadFixture(
+                deployContracts
+            );
+
+            const newAmounts = [
+                ethers.parseEther("50"),
+                0n, // Zero amount
+            ];
+
+            await expect(
+                jobInfo
+                    .connect(jobCreator)
+                    .setRewardsAmount(rewardTokens, newAmounts)
+            ).to.be.revertedWithCustomError(jobInfo, "InvalidRewardAmount");
+        });
+
+        it("Should revert when trying to set rewards amount after rewards claimed via claimReward", async function () {
+            const {
+                jobInfo,
+                jobInfoAddress,
+                jobCreator,
+                rewardTokens,
+                user1,
+                protocolWallet,
+                chainId,
+            } = await loadFixture(deployContracts);
+
+            // Create a valid signature for user1 to claim reward
+            const nonce = ethers.randomBytes(32);
+            const signature = await createSignature(
+                protocolWallet,
+                user1.address,
+                jobInfoAddress,
+                chainId,
+                ethers.hexlify(nonce)
+            );
+
+            // User claims reward
+            await jobInfo.connect(user1).claimReward(nonce, signature);
+
+            const newAmounts = [
+                ethers.parseEther("50"),
+                ethers.parseEther("75"),
+            ];
+
+            await expect(
+                jobInfo
+                    .connect(jobCreator)
+                    .setRewardsAmount(rewardTokens, newAmounts)
+            ).to.be.revertedWithCustomError(
+                jobInfo,
+                "RewardsAlreadyDistributed"
+            );
+        });
+
         it("Should allow jobCreator to withdraw tokens", async function () {
             const { jobInfo, jobCreator, token1, token2, deployer } =
                 await loadFixture(deployContracts);

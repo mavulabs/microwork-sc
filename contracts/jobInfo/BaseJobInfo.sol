@@ -16,6 +16,7 @@ abstract contract BaseJobInfo is ReentrancyGuard {
     error NotARewardToken(address tokenAddress);
     error InvalidJob();
     error RewardAlreadyDistributed(address worker);
+    error RewardsAlreadyDistributed();
     error OnlyAdminCanChange(address sender);
     error InvalidSignature();
     error NonceAlreadyUsed(bytes32 nonce);
@@ -43,6 +44,7 @@ abstract contract BaseJobInfo is ReentrancyGuard {
     mapping(bytes32 => bool) public usedNonces; // Track used nonces to prevent replay attacks
     address protocolWallet;
     address adminWallet;
+    uint256 public totalRewardsDistributed; // Track if any rewards have been distributed
 
     modifier onlyJobCreator() {
         if (msg.sender != jobCreator) revert UnauthorizedAccess(msg.sender);
@@ -96,6 +98,10 @@ abstract contract BaseJobInfo is ReentrancyGuard {
         if (_rewardTokens.length != _rewardAmounts.length) {
             revert ArrayLengthShouldBeEqual();
         }
+
+        if (!jobStatus) revert JobAlreadyDone();
+
+        if (totalRewardsDistributed > 0) revert RewardsAlreadyDistributed();
 
         rewardTokens = _rewardTokens;
         for (uint256 i = 0; i < _rewardTokens.length; i++) {
