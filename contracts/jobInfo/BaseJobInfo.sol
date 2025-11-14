@@ -22,8 +22,19 @@ abstract contract BaseJobInfo is ReentrancyGuard {
     error NonceAlreadyUsed(bytes32 nonce);
 
     event JobInitialized(address indexed creator);
-    event RewardsUpdated(uint256 cusdAmount);
+    event JobStatusChanged(bool indexed newStatus);
+    event ProtocolWalletChanged(
+        address indexed oldWallet,
+        address indexed newWallet
+    );
+    event RewardsUpdated(address[] rewardTokens, uint256[] rewardAmounts);
     event RewardsSent(address indexed recipient);
+    event RewardsClaimed(
+        address indexed claimant,
+        address[] rewardTokens,
+        uint256[] rewardAmounts,
+        bytes32 indexed nonce
+    );
     event WithdrawalRequested(
         address indexed jobCreator,
         uint256 amount,
@@ -35,6 +46,11 @@ abstract contract BaseJobInfo is ReentrancyGuard {
         address tokenAddress
     );
     event BatchRewardsSent(address[] indexed _users, uint256 successCount);
+    event BatchRewardTransferFailed(
+        address indexed user,
+        address indexed token,
+        uint256 amount
+    );
 
     address[] rewardTokens;
     mapping(address => uint256) rewardTokensToAmount;
@@ -110,5 +126,7 @@ abstract contract BaseJobInfo is ReentrancyGuard {
             }
             rewardTokensToAmount[_rewardTokens[i]] = _rewardAmounts[i];
         }
+
+        emit RewardsUpdated(_rewardTokens, _rewardAmounts);
     }
 }

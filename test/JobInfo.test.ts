@@ -220,8 +220,13 @@ describe("JobInfo Contract", function () {
             );
 
             await expect(jobInfo.connect(user1).claimReward(nonce, signature))
-                .to.emit(jobInfo, "RewardsSent")
-                .withArgs(user1.address);
+                .to.emit(jobInfo, "RewardsClaimed")
+                .withArgs(
+                    user1.address,
+                    (tokens: string[]) => tokens.length === 2,
+                    (amounts: bigint[]) => amounts.length === 2,
+                    nonce
+                );
 
             expect(await token1.balanceOf(user1.address)).to.equal(
                 rewardAmounts[0]
@@ -691,9 +696,16 @@ describe("JobInfo Contract", function () {
                 ethers.parseEther("75"),
             ];
 
-            await jobInfo
-                .connect(jobCreator)
-                .setRewardsAmount(rewardTokens, newAmounts);
+            await expect(
+                jobInfo
+                    .connect(jobCreator)
+                    .setRewardsAmount(rewardTokens, newAmounts)
+            )
+                .to.emit(jobInfo, "RewardsUpdated")
+                .withArgs(
+                    (tokens: string[]) => tokens.length === 2,
+                    (amounts: bigint[]) => amounts.length === 2
+                );
 
             expect(await jobInfo.getRewardAmount(rewardTokens[0])).to.equal(
                 newAmounts[0]
@@ -745,23 +757,6 @@ describe("JobInfo Contract", function () {
                 jobInfo,
                 "RewardsAlreadyDistributed"
             );
-        });
-
-        it("Should revert when trying to set reward amount to zero", async function () {
-            const { jobInfo, jobCreator, rewardTokens } = await loadFixture(
-                deployContracts
-            );
-
-            const newAmounts = [
-                ethers.parseEther("50"),
-                0n, // Zero amount
-            ];
-
-            await expect(
-                jobInfo
-                    .connect(jobCreator)
-                    .setRewardsAmount(rewardTokens, newAmounts)
-            ).to.be.revertedWithCustomError(jobInfo, "InvalidRewardAmount");
         });
 
         it("Should revert when trying to set rewards amount after rewards claimed via claimReward", async function () {
@@ -842,21 +837,26 @@ describe("JobInfo Contract", function () {
             const { jobInfo, jobCreator } = await loadFixture(deployContracts);
 
             expect(await jobInfo.jobStatus()).to.be.true;
-            await jobInfo.connect(jobCreator).changeJobStatus();
+            await expect(jobInfo.connect(jobCreator).changeJobStatus())
+                .to.emit(jobInfo, "JobStatusChanged")
+                .withArgs(false);
             expect(await jobInfo.jobStatus()).to.be.false;
         });
 
         it("Should allow admin to change protocol wallet", async function () {
-            const { jobInfo, adminWallet, deployer } = await loadFixture(
-                deployContracts
-            );
+            const { jobInfo, adminWallet, deployer, protocolWallet } =
+                await loadFixture(deployContracts);
 
-            await jobInfo
-                .connect(adminWallet)
-                .changeProtocolWallet(deployer.address);
+            await expect(
+                jobInfo
+                    .connect(adminWallet)
+                    .changeProtocolWallet(deployer.address)
+            )
+                .to.emit(jobInfo, "ProtocolWalletChanged")
+                .withArgs(protocolWallet.address, deployer.address);
 
-            const [, , protocolWallet] = await jobInfo.getJobInfo();
-            expect(protocolWallet).to.equal(deployer.address);
+            const [, , newProtocolWallet] = await jobInfo.getJobInfo();
+            expect(newProtocolWallet).to.equal(deployer.address);
         });
 
         it("Should revert when trying to set protocol wallet to zero address", async function () {

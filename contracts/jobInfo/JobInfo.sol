@@ -87,17 +87,23 @@ contract JobInfo is BaseJobInfo {
         // Mark reward as distributed before transfer to prevent reentrancy
         hasReceivedReward[claimant] = true;
 
+        uint256 tokenCount = rewardTokens.length;
+        address[] memory tokens = new address[](tokenCount);
+        uint256[] memory amounts = new uint256[](tokenCount);
+
         // Transfer all reward tokens to the claimant
-        for (uint256 i = 0; i < rewardTokens.length; i++) {
+        for (uint256 i = 0; i < tokenCount; i++) {
+            tokens[i] = rewardTokens[i];
+            amounts[i] = rewardTokensToAmount[rewardTokens[i]];
             bool success = IERC20(rewardTokens[i]).transfer(
                 claimant,
-                rewardTokensToAmount[rewardTokens[i]]
+                amounts[i]
             );
             if (!success) revert TransferFailed();
         }
 
         totalRewardsDistributed++;
-        emit RewardsSent(claimant);
+        emit RewardsClaimed(claimant, tokens, amounts, nonce);
     }
 
     function batchSendRewards(
@@ -131,6 +137,7 @@ contract JobInfo is BaseJobInfo {
             for (uint256 j = 0; j < tokenCount; j++) {
                 try IERC20(tokens[j]).transfer(user, amounts[j]) {} catch {
                     allTransfersSuccessful = false;
+                    emit BatchRewardTransferFailed(user, tokens[j], amounts[j]);
                     break;
                 }
             }
@@ -168,13 +175,16 @@ contract JobInfo is BaseJobInfo {
         if (!jobStatus) revert JobAlreadyDone();
 
         jobStatus = false;
+        emit JobStatusChanged(false);
     }
 
     function changeProtocolWallet(
         address _newProtocolWallet
     ) external nonReentrant onlyAdmin {
         if (_newProtocolWallet == address(0)) revert ZeroAddress();
+        address oldWallet = protocolWallet;
         protocolWallet = _newProtocolWallet;
+        emit ProtocolWalletChanged(oldWallet, _newProtocolWallet);
     }
 
     function isAReward(address tokenAddress) public view returns (bool) {
