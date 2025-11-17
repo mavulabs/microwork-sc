@@ -16,11 +16,25 @@ abstract contract BaseJobInfo is ReentrancyGuard {
     error NotARewardToken(address tokenAddress);
     error InvalidJob();
     error RewardAlreadyDistributed(address worker);
+    error RewardsAlreadyDistributed();
     error OnlyAdminCanChange(address sender);
+    error InvalidSignature();
+    error NonceAlreadyUsed(bytes32 nonce);
 
     event JobInitialized(address indexed creator);
-    event RewardsUpdated(uint256 cusdAmount);
+    event JobStatusChanged(bool indexed newStatus);
+    event ProtocolWalletChanged(
+        address indexed oldWallet,
+        address indexed newWallet
+    );
+    event RewardsUpdated(address[] rewardTokens, uint256[] rewardAmounts);
     event RewardsSent(address indexed recipient);
+    event RewardsClaimed(
+        address indexed claimant,
+        address[] rewardTokens,
+        uint256[] rewardAmounts,
+        bytes32 indexed nonce
+    );
     event WithdrawalRequested(
         address indexed jobCreator,
         uint256 amount,
@@ -32,14 +46,21 @@ abstract contract BaseJobInfo is ReentrancyGuard {
         address tokenAddress
     );
     event BatchRewardsSent(address[] indexed _users, uint256 successCount);
+    event BatchRewardTransferFailed(
+        address indexed user,
+        address indexed token,
+        uint256 amount
+    );
 
     address[] rewardTokens;
     mapping(address => uint256) rewardTokensToAmount;
     address jobCreator;
     bool public jobStatus; // InProgress: true, Done: false
     mapping(address => bool) public hasReceivedReward;
+    mapping(bytes32 => bool) public usedNonces; // Track used nonces to prevent replay attacks
     address protocolWallet;
     address adminWallet;
+    uint256 public totalRewardsDistributed; // Track if any rewards have been distributed
 
     modifier onlyJobCreator() {
         if (msg.sender != jobCreator) revert UnauthorizedAccess(msg.sender);
@@ -94,6 +115,10 @@ abstract contract BaseJobInfo is ReentrancyGuard {
             revert ArrayLengthShouldBeEqual();
         }
 
+        if (!jobStatus) revert JobAlreadyDone();
+
+        if (totalRewardsDistributed > 0) revert RewardsAlreadyDistributed();
+
         rewardTokens = _rewardTokens;
         for (uint256 i = 0; i < _rewardTokens.length; i++) {
             if (_rewardTokens[i] == address(0)) {
@@ -101,5 +126,7 @@ abstract contract BaseJobInfo is ReentrancyGuard {
             }
             rewardTokensToAmount[_rewardTokens[i]] = _rewardAmounts[i];
         }
+
+        emit RewardsUpdated(_rewardTokens, _rewardAmounts);
     }
 }

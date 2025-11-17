@@ -6,6 +6,12 @@ require("@openzeppelin/hardhat-upgrades");
 const ALFAJORES_PRIVATE_KEY = process.env.ALFAJORES_PRIVATE_KEY;
 module.exports = {
     solidity: "0.8.24",
+    paths: {
+        tests: "./test",
+    },
+    mocha: {
+        timeout: 40000,
+    },
     networks: {
         alfajores: {
             url: `https://alfajores-forno.celo-testnet.org`,
